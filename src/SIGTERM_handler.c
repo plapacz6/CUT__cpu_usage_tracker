@@ -3,17 +3,18 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "globals.h"
+
+#include "logger.h"
+#include "reader.h"
+#include "ring_buffer.h"
 
 
 #include "SIGTERM_handler.h"
 void SIGTERM_handler(int signum){
   if(signum == SIGTERM){
-    if(fstat) fclose(fstat);
-    if(flog) fclose(flog);
-    #ifdef TEST_ON
-    printf("%s\n", "SIGTERM_handler TEST PASS");
-    #endif //TEST_ON    
+    if(fstat) fclose(fstat);           //reader
+    //if(flog) fclose(flog);           //logger
+    //rb_destroy(ptr_logger_buffer);   //logger
     exit(0);
   }
 }
