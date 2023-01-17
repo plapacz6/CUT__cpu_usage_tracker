@@ -8,14 +8,15 @@
 #include <assert.h>
 
 #include "../reader.h"
-
+/***************************************************/
 int cat_proc_stat_file(char *fname);
+size_t determine_buff_M_size(char *fname);
+int fillin_buff_M_tmpfile(char* buff_M, size_t buff_M_size, char *fname);
+void* reader(void *watchdog_tbl);
 
+/***************************************************/
+int test_cat_proc_stat_file(char *fname){
 
-int test_cat_proc_stat_file(){
-  char * restrict fmt = "/var/tmp/CUP__cpu_usage_test_reader1_%d.txt";  
-  char fname[strlen(fmt) + 16];
-  sprintf(fname, fmt, rand());  
   if(0 != cat_proc_stat_file(fname)){
     fprintf(stderr, "%s\n", " cat_proc_stat_file : fail");
     return -1;
@@ -51,17 +52,50 @@ int test_cat_proc_stat_file(){
   // &&
   //found pattern after interesting part of file
 
-  if(0 != remove(fname)){
-    fprintf(stderr, "%s %s\n", "can't delete temporary file :", fname);
-  }
+
   return 0;
 }
 #undef BUFF_SIZE
 
+/***************************************************/
+
+int test_determine_buff_M_size(char *fname){
+  size_t size = determine_buff_M_size(fname);
+  printf("%s   file size: %lu", fname, size);
+  assert(size > 256); //one cpu at least
+  return 0;
+}
+
+/***************************************************/
+
+int test_fillin_buff_M_tmpfile(char *fname){
+  char buff[100] = {};
+  size_t size = 100;
+  fillin_buff_M_tmpfile(buff, size, fname);
+  for(int i = 0; i < 10; i++){
+    if(buff[i] == 0) return 1;
+  }
+  return 0;
+} 
+
+/***************************************************/
+
 int main(){
   srand(time(NULL));
   int ret = 0;
-  ret = test_cat_proc_stat_file();
+
+  char * restrict fmt = "/var/tmp/CUP__cpu_usage_test_reader1_%d.txt";  
+  char fname[strlen(fmt) + 16];
+  sprintf(fname, fmt, rand());  
   
-  return 
+  ret = test_cat_proc_stat_file(fname);
+  ret = test_determine_buff_M_size(fname);
+  ret = test_fillin_buff_M_tmpfile(fname);
+  if(0 != remove(fname)){
+    fprintf(stderr, "%s %s\n", "can't delete temporary file :", fname);
+  }
+  
+  reader(NULL);
+  
+  return ret;
 }
