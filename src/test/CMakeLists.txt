@@ -89,6 +89,26 @@ target_link_libraries(reader_test PRIVATE $<TARGET_OBJECTS:ring_buffer>)
 target_link_libraries(reader_test PRIVATE pthread)
 
 
+# #####################     reader      ############################
+add_executable(analyzer_test
+  ./analyzer_test.c  
+)
+target_compile_definitions(analyzer_test PUBLIC TEST_ON)
+if(CMAKE_C_COMPILER  EQUAL "GNU Compiler Collection")    
+    target_compile_options(analyzer_test PRIVATE -Wall -Wextra)
+elseif(CMAKE_C_COMPILER EQUAL "LLVM Clang")
+    target_compile_options(analyzer_test PRIVATE -Weverything)
+endif()
+target_compile_definitions(analyzer_test PRIVATE TEST_ON)
+target_compile_options(analyzer_test PRIVATE -pthread)
+target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:reader>)
+target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:sigterm_handler>)
+target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:ring_buffer>)
+target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:analyzer>)
+target_link_libraries(analyzer_test PRIVATE pthread)
+
+
+
 # #####################  TESTS  ####################################
 add_test(NAME SIGTERM_handler__test COMMAND SIGTERM_handler_test)
 
@@ -102,3 +122,5 @@ add_test(NAME watchdog__test COMMAND watchdog_test)
 #   )
 
 add_test(NAME reader__test COMMAND reader_test)
+
+add_test(NAME analyzer__test COMMAND analyzer_test)

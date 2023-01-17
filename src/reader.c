@@ -244,7 +244,7 @@ int add_msg_to_rb_ra(char *msg_a, size_t msg_a_size, ring_buffer_T *prb){
 char* get_msg_from_rb_ra(ring_buffer_T *prb){
   return (char*)rb_get_front_hook(prb);
 }
-
+/***************************************************/
 void open_proc_stat_file(){
   proc_stat_file = fopen("/proc/stat","r");
   if(!proc_stat_file){
@@ -358,12 +358,12 @@ void* reader(void *watchdog_tbl){
     /*  podepnij do ring buffera */
     add_msg_to_rb_ra(G_msg_array, msg_size * cpu_CorN, rb_ra);
     
-    /*   test  analyzer odbior*/
-    add_msg_to_rb_ra(G_msg_array, msg_size * cpu_CorN, rb_ra);
-    char *msg_aa = get_msg_from_rb_ra(rb_ra);
-    for(int i = 0; i < cpu_CorN; i++){
-      printf("\nmsg %d:%s\n", i, (msg_aa + (i * msg_size))); 
-    }
+    // /*   test  analyzer odbior*/
+    // add_msg_to_rb_ra(G_msg_array, msg_size * cpu_CorN, rb_ra);
+    // char *msg_aa = get_msg_from_rb_ra(rb_ra);
+    // for(int i = 0; i < cpu_CorN; i++){
+    //   printf("\nmsg %d:%s\n", i, (msg_aa + (i * msg_size))); 
+    // }
 
     //3.nanosleep()
     sleep(1);
@@ -373,13 +373,19 @@ void* reader(void *watchdog_tbl){
     close_proc_stat_file();
   }//while
   printf("%s\n", "5. after main loop"); fflush(stdout); 
+  while(1);
+
   
   //SIGTERM handler:
   destroy_msg_array(G_msg_array);
   destroy_buff_M(buff_M);
-  if(proc_stat_file != NULL) fclose(proc_stat_file);   //SIGTERM
+  if(proc_stat_file != NULL) {
+    fclose(proc_stat_file);   //SIGTERM
+    proc_stat_file = NULL;
+  }
   rb_destroy(rb_ra);
   destroy_rb_ra_data_table(rb_ra_data_table);
+
   pthread_exit(0);
 }
 

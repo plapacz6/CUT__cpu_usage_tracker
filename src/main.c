@@ -5,10 +5,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "SIGTERM_handler.h"
 #include "watchdog.h"
 #include "logger.h"
+#include "reader.h"
+#include "analyzer.h"
+//#include "printf.h"
 #include "mutexes.h"
 
 
@@ -58,10 +62,6 @@ int main(){
   
   /* ANALYZER-PRINTER*/
   double curr_avr_cpu_usage[cpu_cores_number]; //VLA
-  /* READER-ANALYZER */
-  //ring_buffer_t reader2analyz_buffer = rb_create()
-  //ring_buffer_t *ptr_read2analyz_buffer;
-  //idle_t reader_data[] //VLA
   
   
   /* creating 5 threads */
@@ -77,21 +77,50 @@ int main(){
   watchdog_table[WATCH_LOGGER].ptr_pthread_id = &pthread_printer;
 
   if(0 != pthread_create(&pthread_watchdog, NULL, watchdog, NULL)){
-    fprintf(stderr, "%s\n", "pthread_create: watchdog");
+    printf("%s\n", "pthread_create: watchdog");
     exit(1);
   }
    
-  // if(0 != pthread_create(&pthread_logger, NULL, logger, &watchdog_table[WATCH_LOGGER].active)){
+  // if(0 != pthread_create(&pthread_logger, NULL, 
+  //    logger, &watchdog_table[WATCH_LOGGER].active)){
   // watchdog_table[WATCH_LOGGER].ptr_pthread_id = &pthread_logger;
   // watchdog_table[WATCH_LOGGER].exists = 1; 
-  //   fprintf("%s\n", "pthread_create: logger");
+  //   printf("%s\n", "pthread_create: LOGGER");
   //   exit(1);
   // }  
 
- 
+  
+  if(0 != pthread_create(&pthread_reader, NULL, 
+      reader, &watchdog_table[WATCH_READER].active)){
+  watchdog_table[WATCH_READER].ptr_pthread_id = &pthread_reader;
+  watchdog_table[WATCH_READER].exists = 1; 
+    printf("%s\n", "pthread_create: READER");
+    exit(1);
+  }  
 
-  /* ending threads and cleaning*/
+  sleep(1);
+
+ if(0 != pthread_create(&pthread_analyzer, NULL, 
+    analyzer, &watchdog_table[WATCH_ANALYZER].active)){
+  watchdog_table[WATCH_ANALYZER].ptr_pthread_id = &pthread_analyzer;
+  watchdog_table[WATCH_ANALYZER].exists = 1; 
+    printf("%s\n", "pthread_create: ANALYZER");
+    exit(1);
+  }  
+
+//  if(0 != pthread_create(&pthread_printer, NULL, 
+//     printer, &watchdog_table[WATCH_PRINTER].active)){
+//   watchdog_table[WATCH_PRINTER].ptr_pthread_id = &pthread_printer;
+//   watchdog_table[WATCH_PRINTER].exists = 1; 
+//     printf("%s\n", "pthread_create: PRINTER");
+//     exit(1);
+//   }  
+
+  /* ending threads and cleaning */
   // pthread_join(phread_logger, NULL);
+  pthread_join(pthread_analyzer, NULL);
+  pthread_join(pthread_reader, NULL);
+  //pthread_join(pthread_printer, NULL);
   pthread_join(pthread_watchdog, NULL);
 
   destroy_mutexes();

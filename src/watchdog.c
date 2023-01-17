@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <pthread.h>
+#include <signal.h>
 #include <unistd.h>
 #include "watchdog.h"
 #include "mutexes.h"
@@ -22,8 +23,8 @@ void* watchdog(){
         if(watchdog_table[i].exists != 0){
           if(! watchdog_table[i].active){                    
 
-              //int ret = pthread_kill(*(watchdog_table[i].ptr_pthread_id), SIGTERM);
-              int ret = pthread_cancel(*(watchdog_table[i].ptr_pthread_id));
+              int ret = pthread_kill(*(watchdog_table[i].ptr_pthread_id), SIGTERM);
+              //int ret = pthread_cancel(*(watchdog_table[i].ptr_pthread_id));
               if(0 != ret ){            
                 int errsv = errno;
                 if(errsv == ESRCH) fprintf(stderr, "%s\n","no such process");

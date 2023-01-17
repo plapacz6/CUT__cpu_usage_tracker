@@ -27,9 +27,15 @@ void SIGTERM_handler(int signum){
     //rb_destroy(ptr_logger_buffer);   
 
     //reader:
-    if(proc_stat_file) fclose(proc_stat_file);           //reader
+    destroy_msg_array(G_msg_array);
+    destroy_buff_M(buff_M);
+    if(proc_stat_file != NULL) {
+      fclose(proc_stat_file);   //SIGTERM
+      proc_stat_file = NULL;
+    }
     rb_destroy(rb_ra);
     destroy_rb_ra_data_table(rb_ra_data_table);
+
     exit(0);
   }
 
