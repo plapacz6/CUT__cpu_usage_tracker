@@ -4,10 +4,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "../globals.h"
-
 #include "../watchdog.h"
-#include "../globals.h"
 #include "../mutexes.h"
 #include "../SIGTERM_handler.h"
 

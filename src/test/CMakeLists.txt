@@ -17,6 +17,7 @@ target_compile_definitions(SIGTERM_handler_test PRIVATE TEST_ON)
 target_compile_options(SIGTERM_handler_test PRIVATE -pthread)
 target_link_libraries(SIGTERM_handler_test PRIVATE $<TARGET_OBJECTS:sigterm_handler>)
 target_link_libraries(SIGTERM_handler_test PRIVATE $<TARGET_OBJECTS:ring_buffer>)
+target_link_libraries(SIGTERM_handler_test PRIVATE $<TARGET_OBJECTS:reader>)
 target_link_libraries(SIGTERM_handler_test PRIVATE pthread)
 
 

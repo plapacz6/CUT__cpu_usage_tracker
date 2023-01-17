@@ -31,30 +31,37 @@
  * In case of overflow, content of oldest element is overritten by pushed element.
  * In case of undeflow readed is not appropriate elemment.
  */
-typedef struct ring_buffer_tt {    
+typedef struct ring_buffer_TT {    
     int front;
     int back;    
     size_t size;
     size_t type_size;
     void *b[];  //FAM
-} ring_buffer_t;
+} ring_buffer_T;
 
 /**
- * @brief create and retrun object begin ring buffer for pointers
+ * @brief ring_buffer for pointers to user data
  * 
- * by setting internal pointers to right targets
+ * User must provide table of data, and ring buffer serverves to store pointers to 
+ * cells of that table. 
  * 
- * @param data_ 
- * @param data_type_size 
- * @param number_of_data 
- * @return ring_buffer_t* pointere to created ring buffer
+ * Buffer constructor calculate pointers to cells based on pointer to table (1 arg)
+ * size of one cell provided in second arg.
+ * Third arg determined capacity of buffer, and must be equal to number of 
+ * cell user data table.
+ *
+ * 
+ * @param void_data  - pointer to table of cell
+ * @param data_type_size - size one cel in bytes
+ * @param number_of_data - number of cell
+ * @return ring_buffer_T* - pointer to newly created ring_buffer_T
  */
-ring_buffer_t* rb_create(void* data_,size_t data_type_size, size_t number_of_data);
-void rb_destroy(ring_buffer_t* prb);
+ring_buffer_T* rb_create(void* data_,size_t data_type_size, size_t number_of_data);
+void rb_destroy(ring_buffer_T* prb);
 
-void* rb_get_back_hook(ring_buffer_t *prb);
-void* rb_get_front_hook(ring_buffer_t *prb);
-void rb_log(ring_buffer_t *prb, const char * msg);
+void* rb_get_back_hook(ring_buffer_T *prb);
+void* rb_get_front_hook(ring_buffer_T *prb);
+void rb_log(ring_buffer_T *prb, const char * msg);
 
 
 #endif //ring_BUFFER_H

@@ -5,9 +5,10 @@
 #define LOGGER_BUFFER_SIZE (1025)
 extern char *ptr_logger_buffer;
 
-ring_buffer_t* rb_create(void* void_data,size_t data_type_size, size_t number_of_data){
-    ring_buffer_t *prb = 
-        (ring_buffer_t*) malloc(sizeof(ring_buffer_t) + number_of_data * sizeof(void*));
+
+ring_buffer_T* rb_create(void* void_data,size_t data_type_size, size_t number_of_data){
+    ring_buffer_T *prb = 
+        (ring_buffer_T*) malloc(sizeof(ring_buffer_T) + number_of_data * sizeof(void*));
                            
     prb->size = number_of_data;
     prb->type_size = data_type_size;
@@ -24,7 +25,7 @@ ring_buffer_t* rb_create(void* void_data,size_t data_type_size, size_t number_of
     }                        
     return prb;
 }
-void rb_destroy(ring_buffer_t* prb){
+void rb_destroy(ring_buffer_T* prb){
     if(prb != NULL){
         free(prb);
     }
@@ -35,7 +36,7 @@ void rb_destroy(ring_buffer_t* prb){
  * @param prb 
  * @return void* pointer to one box in data table (need casting)
  */
-void* rb_get_back_hook(ring_buffer_t *prb){
+void* rb_get_back_hook(ring_buffer_T *prb){
     void *el = prb->b[prb->back];
     prb->back++;
     if(prb->back == prb->front)
@@ -49,7 +50,7 @@ void* rb_get_back_hook(ring_buffer_t *prb){
  * @param prb 
  * @return void* pointer to one box in data table (need casting)
  */
-void* rb_get_front_hook(ring_buffer_t *prb){                        
+void* rb_get_front_hook(ring_buffer_T *prb){                        
     void *el = prb->b[prb->front];                        
     if(prb->front == prb->back)
         rb_log(prb, "ring buffer underflow");
@@ -58,6 +59,6 @@ void* rb_get_front_hook(ring_buffer_t *prb){
     return el;
 }
 
-void rb_log(ring_buffer_t *prb, const char * msg){
+void rb_log(ring_buffer_T *prb, const char * msg){
     fprintf(stderr, "ring_buffer: %p: %s", prb, msg);
 }

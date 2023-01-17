@@ -21,6 +21,8 @@ void* watchdog(){
       for(int i = 0; i < 4; i++){      
         if(watchdog_table[i].exists != 0){
           if(! watchdog_table[i].active){                    
+
+              //int ret = pthread_kill(*(watchdog_table[i].ptr_pthread_id), SIGTERM);
               int ret = pthread_cancel(*(watchdog_table[i].ptr_pthread_id));
               if(0 != ret ){            
                 int errsv = errno;

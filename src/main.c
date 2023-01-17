@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <time.h>
 
-#include "globals.h"  
 #include "SIGTERM_handler.h"
 #include "watchdog.h"
 #include "logger.h"

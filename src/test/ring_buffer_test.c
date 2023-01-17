@@ -10,7 +10,7 @@ extern long double *ptr_vla_a; //to VLA
 
 int test_ring_buffer(){
     
-    ring_buffer_t *prb = rb_create(ptr_vla_a, sizeof(int), number_of_data);
+    ring_buffer_T *prb = rb_create(ptr_vla_a, sizeof(int), number_of_data);
                             
     int el;
     int el_test = 100;
