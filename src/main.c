@@ -126,10 +126,7 @@ int main(){
   destroy_mutexes();
 
   // /* this is also in SIGTERM HANDLER*/
-  // rb_destroy(ptr_logger_buffer);  
-  // if(fstat) fclose(fstat);
-  // if(flog) fclose(flog);
-  raise(SIGTERM);
+   raise(SIGTERM);
 
   return 0;
 }

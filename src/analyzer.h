@@ -15,17 +15,17 @@
  * (first 10 position)
  */
 typedef struct proc_stat_1cpu10_TT{  
-  char cpuN [10];    // exmpl: "cpu12"
-  unsigned long user;
-  unsigned long nice;
-  unsigned long system;
-  unsigned long idle;
-  unsigned long iowait;
-  unsigned long irq;
-  unsigned long softirq;
-  unsigned long steal;
-  unsigned long guest;
-  unsigned long guest_nice;
+  //char cpuN [10];    // exmpl: "cpu12"
+  long double user;
+  long double nice;
+  long double system;
+  long double idle;
+  long double iowait;
+  long double irq;
+  long double softirq;
+  long double steal;
+  long double guest;
+  long double guest_nice;
 } proc_stat_1cpu10_T;
 
 void *analyzer(void* watcher_tbl);

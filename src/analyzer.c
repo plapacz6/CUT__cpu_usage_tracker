@@ -35,56 +35,70 @@ fscanf(fp,
     );    
 }
 
+/**
+ * @brief parse plan text msg into struct describing cpu usage
+ * 
+ * @param msg 
+ * @param data_1cpu 
+ */
+void parse_msg(char *msg, proc_stat_1cpu10_T *data_1cpu) {
 
-long double calculate_avr_1cpu(proc_stat_1cpu10_T data_1cpu){
+  sscanf(msg, 
+        //%SIZE_Hs %Lf %Lf %Lf %Lf %Lf %Lf %Lf %*f %*f %*f",
+        "%*s %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf", 
+        //header, 
+        &data_1cpu->user,
+        &data_1cpu->nice,
+        &data_1cpu->system,
+        &data_1cpu->idle,
+        &data_1cpu->iowait,
+        &data_1cpu->irq,
+        &data_1cpu->softirq,
+        &data_1cpu->steal,
+        &data_1cpu->guest,
+        &data_1cpu->guest_nice
+        );    
+}
 
-  // long double** loadavg;
-  // long double avr[3];
-  // proc_stat_1cpu10_T *p1s = NULL;
-  // proc_stat_1cpu10_T *p2s = NULL;
-  // for(int i = 0; i < 8; i++){
+/**
+ * @brief calcualte average cpu usage
+ * 
+ * @param data_1cpu1 
+ * @param data_1cpu2 
+ * @return long double 
+ */
+long double calculate_avr_1cpu(proc_stat_1cpu10_T *data_1cpu1, proc_stat_1cpu10_T *data_1cpu2){
 
-  //   // if(p2s == NULL){
-  //   //   p2s = p1s;
-  //   // }
-   
-  //   for(int cpu = 0; cpu < 3; cpu++) {
-  //     loadavg[i][cpu] = 
-  //     ((( p1s[cpu].user + 
-  //         p1s[cpu].nice +
-  //         p1s[cpu].system + 
-  //         //p1s[cpu].idle 
-  //         p1s[cpu].iowait +
-  //         p1s[cpu].irq +
-  //         p1s[cpu].softirq ) -
-  //         ( p2s[cpu].user + 
-  //         p2s[cpu].nice +
-  //         p2s[cpu].system + 
-  //         //p2s[cpu].idle 
-  //         p2s[cpu].iowait +
-  //         p2s[cpu].irq +
-  //         p2s[cpu].softirq )) /
-  //         (( p1s[cpu].user + 
-  //         p1s[cpu].nice +
-  //         p1s[cpu].system + 
-  //         p1s[cpu].idle +
-  //         p1s[cpu].iowait +
-  //         p1s[cpu].irq +
-  //         p1s[cpu].softirq ) -
-  //         ( p2s[cpu].user + 
-  //         p2s[cpu].nice +
-  //         p2s[cpu].system + 
-  //         p2s[cpu].idle +
-  //         p2s[cpu].iowait +
-  //         p2s[cpu].irq +
-  //         p2s[cpu].softirq )) );
-  //   }//for 1zestaw oblicza
-
-  //   p2s++;
-  //   p1s++;
-
-  // }//for 10 zestawowo
-  return 0;
+  long double     avr = 
+    ((( data_1cpu1->user + 
+        data_1cpu1->nice +
+        data_1cpu1->system + 
+        //data_1cpu1->idle 
+        data_1cpu1->iowait +
+        data_1cpu1->irq +
+        data_1cpu1->softirq ) -
+        ( data_1cpu2->user + 
+        data_1cpu2->nice +
+        data_1cpu2->system + 
+        //data_1cpu2->idle 
+        data_1cpu2->iowait +
+        data_1cpu2->irq +
+        data_1cpu2->softirq )) /
+        (( data_1cpu1->user + 
+        data_1cpu1->nice +
+        data_1cpu1->system + 
+        data_1cpu1->idle +
+        data_1cpu1->iowait +
+        data_1cpu1->irq +
+        data_1cpu1->softirq ) -
+        ( data_1cpu2->user + 
+        data_1cpu2->nice +
+        data_1cpu2->system + 
+        data_1cpu2->idle +
+        data_1cpu2->iowait +
+        data_1cpu2->irq +
+        data_1cpu2->softirq )) );
+  return avr;
 }
 
 // size_t cpu_cors_N(size_t n, int get_);
@@ -99,8 +113,8 @@ void *analyzer(void* watcher_tbl){
   /*   test  analyzer odbior*/    
     char *msg_aa = get_msg_from_rb_ra(rb_ra);
     for(int i = 0; i < cpu_CorN; i++){
-      if(*(msg_aa + (i * msg_size)) != NULL){
-        printf("\nmsg %d:%s\n", i, (msg_aa + (i * msg_size))); \        
+      if(*(msg_aa + (i * msg_size)) != '\0'){
+        printf("\nmsg %d:%s\n", i, (msg_aa + (i * msg_size)));       
         *(msg_aa + (i * msg_size)) = '\0';
       }
       else {
