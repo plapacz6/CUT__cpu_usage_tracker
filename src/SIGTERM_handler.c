@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "logger.h"
 #include "reader.h"
@@ -11,12 +12,28 @@
 
 #include "SIGTERM_handler.h"
 void SIGTERM_handler(int signum){
+  
+  sigset_t signal_mask;
+  sigset_t old_signal_mask;
+  sigfillset(&signal_mask);
+  int ret = sigprocmask(SIG_BLOCK, &signal_mask, &old_signal_mask);
+  //if(ret == EINVAL) {/* bledna defnicja maski */}
+
+
+
   if(signum == SIGTERM){
-    if(fstat) fclose(fstat);           //reader
-    //if(flog) fclose(flog);           //logger
-    //rb_destroy(ptr_logger_buffer);   //logger
+    //logger:
+    //if(flog) fclose(flog);           
+    //rb_destroy(ptr_logger_buffer);   
+
+    //reader:
+    if(proc_stat_file) fclose(proc_stat_file);           //reader
+    rb_destroy(rb_ra);
+    destroy_rb_ra_data_table(rb_ra_data_table);
     exit(0);
   }
+
+  sigprocmask(SIG_SETMASK, &old_signal_mask, NULL);
 }
 
 void install_SIGTERM_handler(){

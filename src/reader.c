@@ -4,12 +4,14 @@
 #include <assert.h>
 #include <stdio.h>  //fileno
 #include <unistd.h>
-#include <sys/stat.h> //fstat, struct stat
-#include <sys/types.h>
-#include <fcntl.h>  //open
-#include <errno.h>
+// #include <sys/stat.h> //fstat, struct stat
+// #include <sys/types.h>
+// #include <fcntl.h>  //open
+// #include <errno.h>
 #include <pthread.h>
 #include <threads.h>
+#include "ring_buffer.h"
+#include "mutexes.h"
 
 
 /********************  GLOBALS *********************/
@@ -17,6 +19,8 @@
 char* buff_M;
 FILE *proc_stat_file;
 char *G_msg_array;
+ring_buffer_T *rb_ra;
+char *rb_ra_data_table;
 /***************************************************/
 
 /**
@@ -38,17 +42,6 @@ size_t get_msg_size(size_t n, int get_){
   if(get_ == 1) msg_size = n;
   return msg_size;
 }
-/***************************************************/
-/*
-  char * restrict fmt = "/var/tmp/CUP__cpu_usage_1stTry_procstat_%d.txt";  
-  char fname[strlen(fmt) + 16];
-  sprintf(fname, fmt, rand());  
-*/
-/*
-  if(0 != remove(fname)){
-    fprintf(stderr, "%s %s\n", "can't delete temporary file :", fname);
-  }
-*/
 /***************************************************/
 
 /**
@@ -221,6 +214,38 @@ int destroy_msg_array(char* msg_a){
 
 /***************************************************/
 
+char *create_rb_ra_data_table(size_t size){
+  char *data_table = malloc(size);
+  if(!data_table){
+    fprintf(stderr, "%s\n", "can't create rb_ra_data_table");
+    exit(1);
+  } 
+}
+/***************************************************/
+int destroy_rb_ra_data_table(char* data_table){
+  if(data_table) free(data_table);
+  data_table = NULL;
+  rb_ra_data_table = NULL;
+}
+
+/***************************************************/
+int add_msg_to_rb_ra(char *msg_a, size_t msg_a_size, ring_buffer_T *prb){
+
+    //1.pobierz hak
+    char *ptr_cell = (char*) rb_get_back_hook(prb);
+    printf("%s\n", "4.4 hook for mgs obtained"); fflush(stdout);
+    //2.skopiuj  
+    strncpy(ptr_cell, msg_a, msg_a_size);  
+    printf("%s\n", "4.5 message saved in ring_buffer"); fflush(stdout);
+
+  return 0;
+}
+
+char* get_msg_from_rb_ra(ring_buffer_T *prb){
+  return (char*)rb_get_front_hook(prb);
+}
+/***************************************************/
+
 void* reader(void *watchdog_tbl){
   size_t buff_M_size = 0;
   size_t cpu_CorN = 0;
@@ -289,14 +314,8 @@ void* reader(void *watchdog_tbl){
   G_msg_array = create_msg_array(cpu_CorN, msg_size);
 
   /* create ring_buffer */
-  ring_buffer_T
-
-
-
-  //signal for main to run analyzer thread
-  //cnd_signal();
-
-
+  rb_ra_data_table = create_rb_ra_data_table(10 * msg_size * cpu_CorN);
+  rb_ra = rb_create(rb_ra_data_table, msg_size * cpu_CorN, 10);
 
   printf("%s\n", "3. openinig /proc/stat");
 
@@ -306,11 +325,14 @@ void* reader(void *watchdog_tbl){
     //thread_exit(1);
     exit(1);
   }
-  
+
+  //signal for main to run analyzer thread
+  //cnd_signal();
+
   printf("%s\n", "4. main loop");
 
   //while(1){
-  for(int k = 0; k < 1; k++){
+  for(int k = 0; k < 10; k++){
     printf("%s\n", "4.1 enter"); fflush(stdout);
     
     read_BM(buff_M, buff_M_size, proc_stat_file);
@@ -322,20 +344,22 @@ void* reader(void *watchdog_tbl){
     printf("%s\n", "4.3 messages for analyzer ready"); fflush(stdout);
 
     /*  podepnij do ring buffera */
-    //1.pobierz hak
-
-    printf("%s\n", "4.4 hook for mgs obtained"); fflush(stdout);
-
-    //2.skopiuj  
-
-    printf("%s\n", "4.5 message saved in ring_buffer"); fflush(stdout);
+    add_msg_to_rb_ra(G_msg_array, msg_size * cpu_CorN, rb_ra);
+    
+    /*   test  analyzer odbior*/
+    add_msg_to_rb_ra(G_msg_array, msg_size * cpu_CorN, rb_ra);
+    char *msg_aa = get_msg_from_rb_ra(rb_ra);
+    for(int i = 0; i < cpu_CorN; i++){
+      printf("\nmsg:%s\n", msg_aa + (i * msg_size)); 
+    }
 
     //3.nanosleep()
+    sleep(1);
 
     printf("%s\n", "4.6 after sleep - ready for new /proc/stat read"); fflush(stdout);
     /* -----------------------------*/
     
-    sleep(1);
+  
 
   }//while
   printf("%s\n", "5. after main loop"); fflush(stdout); 
@@ -344,6 +368,8 @@ void* reader(void *watchdog_tbl){
   destroy_msg_array(G_msg_array);
   destroy_buff_M(buff_M);
   if(proc_stat_file) fclose(proc_stat_file);   //SIGTERM
+  rb_destroy(rb_ra);
+  destroy_rb_ra_data_table(rb_ra_data_table);
   pthread_exit(0);
 }
 
