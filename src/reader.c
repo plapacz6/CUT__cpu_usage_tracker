@@ -342,8 +342,8 @@ void* reader(void *watchdog_tbl){
 
   // printf("%s\n", "4. main loop");
   
-  //while(1){
-  for(int k = 0; k < 10; k++){
+  while(1){
+  //for(int k = 0; k < 10; k++){
     open_proc_stat_file();  
     // printf("%s\n", "4.1 enter"); fflush(stdout);
     
@@ -366,14 +366,14 @@ void* reader(void *watchdog_tbl){
     // }
 
     //3.nanosleep()
-    sleep(1);
+    //sleep(1);
 
     // printf("%s\n", "4.6 after sleep - ready for new /proc/stat read"); fflush(stdout);
     /* -----------------------------*/
     close_proc_stat_file();
   }//while
   printf("%s\n", "5. after main loop"); fflush(stdout); 
-  while(1);
+  //while(1);
 
   
   //SIGTERM handler:

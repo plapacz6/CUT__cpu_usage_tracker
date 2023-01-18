@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <malloc.h>
+#include <assert.h>
 #include "ring_buffer.h"
 
 #define LOGGER_BUFFER_SIZE (1025)
@@ -14,6 +15,9 @@ ring_buffer_T* rb_create(void* void_data,size_t data_type_size, size_t number_of
     prb->type_size = data_type_size;
     prb->front = 0;
     prb->back = 0;
+    prb->count = 0;
+    cnd_init(&prb->nonempty);
+    cnd_init(&prb->nonfull);
     char *char_data = (char*)void_data;
     for(int i = 0; i < prb->size; i++){
         /* 
@@ -37,11 +41,16 @@ void rb_destroy(ring_buffer_T* prb){
  * @return void* pointer to one box in data table (need casting)
  */
 void* rb_get_back_hook(ring_buffer_T *prb){
+    mtx_lock(&prb->mtx);
+    if(prb->count == prb->size)
+        cnd_wait(&prb->nonfull, &prb->mtx);
+    assert(0 <= prb->count && prb->count < prb->size);
     void *el = prb->b[prb->back];
     prb->back++;
-    if(prb->back == prb->front)
-        rb_log(prb, "ring buffer overflow");    
     prb->back %= prb->size; 
+    prb->count++;
+    cnd_signal(&prb->nonempty);
+    mtx_unlock(&prb->mtx);
     return el;
 }
 /**
@@ -51,11 +60,16 @@ void* rb_get_back_hook(ring_buffer_T *prb){
  * @return void* pointer to one box in data table (need casting)
  */
 void* rb_get_front_hook(ring_buffer_T *prb){                        
-    void *el = prb->b[prb->front];                        
-    if(prb->front == prb->back)
-        rb_log(prb, "ring buffer underflow");
+    mtx_lock(&prb->mtx);
+    if(prb->count == 0)
+        cnd_wait(&prb->nonempty, &prb->mtx);
+    assert(0 < prb->count && prb->count <= prb->size);
+    void *el = prb->b[prb->front];                            
     prb->front++;                        
-    prb->front %= prb->size;                        
+    prb->front %= prb->size;    
+    prb->count--;
+    cnd_signal(&prb->nonfull);
+    mtx_unlock(&prb->mtx);
     return el;
 }
 

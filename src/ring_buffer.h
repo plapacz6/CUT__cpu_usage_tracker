@@ -2,6 +2,7 @@
 #define ring_BUFFER_H
 #include <stdbool.h>
 #include <stddef.h>
+#include <threads.h>
 
 /**
  * @brief usage:
@@ -33,7 +34,11 @@
  */
 typedef struct ring_buffer_TT {    
     int front;
-    int back;    
+    int back;   
+    int count;
+    cnd_t nonempty;
+    cnd_t nonfull; 
+    mtx_t mtx;
     size_t size;
     size_t type_size;
     void *b[];  //FAM
