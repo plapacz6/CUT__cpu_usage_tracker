@@ -15,6 +15,8 @@ typedef enum cell_in_watchdog_table_TT {
 } cell_in_watchdog_table_T;
 
 extern watchdog_entry_T watchdog_table[4]; /**< register for monitoring thread activity */
+void register_in_watchdog(cell_in_watchdog_table_T idx, pthread_t thrd);
+void check_in_watcher(cell_in_watchdog_table_T idx);
 void* watchdog();
 
 #endif// WATCHER_H

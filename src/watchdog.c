@@ -9,6 +9,16 @@
 
 watchdog_entry_T watchdog_table[4];
 
+void register_in_watchdog(cell_in_watchdog_table_T idx, pthread_t thrd){
+  watchdog_table[idx].ptr_pthread_id = &thrd;
+  watchdog_table[idx].exists = 1;   
+}
+
+void check_in_watcher(cell_in_watchdog_table_T idx){
+  watchdog_table[idx].active = 1;   
+}
+
+
 /**
  * @brief watchdog for 4 threads
  * requires the watchdog_table[4] table to be correctly initialized
@@ -23,7 +33,7 @@ void* watchdog(){
         if(watchdog_table[i].exists != 0){
           if(! watchdog_table[i].active){                    
 
-              int ret = pthread_kill(*(watchdog_table[i].ptr_pthread_id), SIGTERM);
+              int ret = 0; //pthread_kill(*(watchdog_table[i].ptr_pthread_id), SIGTERM);
               //int ret = pthread_cancel(*(watchdog_table[i].ptr_pthread_id));
               if(0 != ret ){            
                 int errsv = errno;
