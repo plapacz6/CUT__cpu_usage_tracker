@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ -e CUT__cpu_usage_tracker.md ]
+then
+
+  if [ ! -d build ]
+  then
+    mkdir build
+  fi
+  
+  printf "uwaga kasuje katalog build, kontynuowac ? ( tak = enter, nie = ctr+c )"
+  read odp
+  rm -Rf build/*
+  export CC=clang
+  cd build
+  cmake -DCMAKE_BUILD_TYPE=Debug ..
+  cmake --build .
+  src/cut__cpu_usage_tracker
+
+else
+  printf "\n\ndon't run this script.!!!\n"
+  printf "it is currently in wrong place and may delete some files\n\n"
+fi
+
