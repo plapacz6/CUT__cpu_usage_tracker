@@ -204,12 +204,13 @@ char* create_msg_array(size_t cpu_CorN, size_t msg_size){
     fprintf(stderr, "%s\n", "can't create message array");
     exit(1);
   }
+  return msg_a;
 }
 /***************************************************/
-int destroy_msg_array(char* msg_a){
+void destroy_msg_array(char* msg_a){
   if(msg_a) free(msg_a);
   msg_a = NULL;
-  G_msg_array = NULL;
+  G_msg_array = NULL;  
 }
 
 /***************************************************/
@@ -220,9 +221,10 @@ char *create_rb_ra_data_table(size_t size){
     fprintf(stderr, "%s\n", "can't create rb_ra_data_table");
     exit(1);
   } 
+  return data_table;
 }
 /***************************************************/
-int destroy_rb_ra_data_table(char* data_table){
+void destroy_rb_ra_data_table(char* data_table){
   if(data_table) free(data_table);
   data_table = NULL;
   rb_ra_data_table = NULL;
@@ -366,7 +368,7 @@ void* reader(void *watchdog_tbl){
     // }
 
     //3.nanosleep()
-    //sleep(1);
+    sleep(1);
 
     // printf("%s\n", "4.6 after sleep - ready for new /proc/stat read"); fflush(stdout);
     /* -----------------------------*/

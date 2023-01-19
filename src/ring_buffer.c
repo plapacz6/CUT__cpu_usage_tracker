@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include <malloc.h>
 #include <assert.h>
 #include "ring_buffer.h"
@@ -42,8 +43,9 @@ void rb_destroy(ring_buffer_T* prb){
  */
 void* rb_get_back_hook(ring_buffer_T *prb){
     mtx_lock(&prb->mtx);
-    if(prb->count == prb->size)
+    while(prb->count == prb->size){
         cnd_wait(&prb->nonfull, &prb->mtx);
+    }
     assert(0 <= prb->count && prb->count < prb->size);
     void *el = prb->b[prb->back];
     prb->back++;
@@ -61,8 +63,9 @@ void* rb_get_back_hook(ring_buffer_T *prb){
  */
 void* rb_get_front_hook(ring_buffer_T *prb){                        
     mtx_lock(&prb->mtx);
-    if(prb->count == 0)
+    while(prb->count == 0){
         cnd_wait(&prb->nonempty, &prb->mtx);
+    }
     assert(0 < prb->count && prb->count <= prb->size);
     void *el = prb->b[prb->front];                            
     prb->front++;                        
