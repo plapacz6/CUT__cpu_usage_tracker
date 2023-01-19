@@ -13,7 +13,7 @@
 #include "watchdog.h"
 
 
-ring_buffer_t *ptr_logger_buffer;
+ring_buffer_T *ptr_logger_buffer;
 FILE *flog = NULL;
 
 void logger_clean_up(void *a){
@@ -26,7 +26,7 @@ void* logger(void *ptr_watchdog_place_4_logger){
   pthread_cleanup_push(logger_clean_up, NULL);
 
   int* watchdog_rejestr = (int*)ptr_watchdog_place_4_logger;
-  //ring_buffer_t   
+  //ring_buffer_T   
   #define NUMBER_OF_ENTRY (10)
   #define MAX_LENGTH_OF_ENTRY (256)
   char logger_data[NUMBER_OF_ENTRY][MAX_LENGTH_OF_ENTRY];

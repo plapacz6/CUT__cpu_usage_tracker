@@ -73,6 +73,7 @@ int main(){
   srand(time(NULL));
   init_mutexes();
   
+  /* can't link to at_exit()  and  at_quick_exit() */
   // if(0 != at_quick_exit(release_resouces)){
   //   fprintf(stderr, "%s\n", "registration of at_exit() fail");
   // }
@@ -129,8 +130,9 @@ int main(){
   }  atexit(release_resouces);
   register_in_watchdog(WATCH_ANALYZER, pthread_analyzer);
 
+  sleep(1);
 
- if(0 != pthread_create(&pthread_printer, NULL, 
+  if(0 != pthread_create(&pthread_printer, NULL, 
     printer, &watchdog_table[WATCH_PRINTER].active)){
     printf("%s\n", "pthread_create: PRINTER");
     exit(1);

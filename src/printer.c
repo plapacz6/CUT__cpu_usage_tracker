@@ -27,6 +27,8 @@ void *printer(void* watcher_tbl){
   while(1){
     mtx_lock(&mtx_analyzer_printer);    
     cnd_wait(&cnd_ap, &mtx_analyzer_printer);
+    assert(ptr_avr != NULL);
+
     system("clear");
     printf("%s\n","printer: \naverage usage cpu:");
 
@@ -38,12 +40,14 @@ void *printer(void* watcher_tbl){
               else{
                 printf("\tcpu%02d: %10.2Lf%%\n", i, ptr_avr[i]);
               }
-              fflush(stdout);
-
-              //menu ctl+c = end
-            
+              fflush(stdout);            
     }//for cpu_CorN
+    
     mtx_unlock(&mtx_analyzer_printer);
+    
+    //menu ctl+c = end        
+    // printf("\n\n\n");
+    // printf("\nctl + c = exit");
     sleep(1);
   }//while(1)
 }
