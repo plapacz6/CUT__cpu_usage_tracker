@@ -15,7 +15,7 @@
 #include "logger.h"
 #include "reader.h"
 #include "analyzer.h"
-//#include "printer.h"
+#include "printer.h"
 #include "mutexes.h"
 
 
@@ -130,23 +130,22 @@ int main(){
   register_in_watchdog(WATCH_ANALYZER, pthread_analyzer);
 
 
-//  if(0 != pthread_create(&pthread_printer, NULL, 
-//     printer, &watchdog_table[WATCH_PRINTER].active)){
-//     printf("%s\n", "pthread_create: PRINTER");
-//     exit(1);
-//   }  
-// register_in_watchdog(WATCH_PRINTER, pthread_printer);
+ if(0 != pthread_create(&pthread_printer, NULL, 
+    printer, &watchdog_table[WATCH_PRINTER].active)){
+    printf("%s\n", "pthread_create: PRINTER");
+    exit(1);
+  }  
+register_in_watchdog(WATCH_PRINTER, pthread_printer);
 
 
   /* ending threads and cleaning */
   // pthread_join(phread_logger, NULL);
   pthread_join(pthread_analyzer, NULL);
   pthread_join(pthread_reader, NULL);
-  //pthread_join(pthread_printer, NULL);
+  pthread_join(pthread_printer, NULL);
   pthread_join(pthread_watchdog, NULL);
 
-  //destroy_mutexes();
-
+  release_resouces();
   // /* this is also in SIGTERM HANDLER*/
    raise(SIGTERM);
 
@@ -168,7 +167,6 @@ void release_resouces(void){
     }
     rb_destroy(rb_ra);
     destroy_rb_ra_data_table(rb_ra_data_table);
-
     destroy_mutexes();
     destroy_avr_array();
 

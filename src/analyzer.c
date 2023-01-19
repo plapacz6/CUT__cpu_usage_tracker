@@ -99,9 +99,11 @@ void *analyzer(void* watcher_tbl){
 
   size_t msg_size = get_msg_size(0, 0);
   size_t cpu_CorN = cpu_cors_N(0, 0);
-
-  ptr_avr = create_avr_array(cpu_CorN);
   
+  mtx_unlock(&mtx_analyzer_printer);
+  ptr_avr = create_avr_array(cpu_CorN);  
+  mtx_unlock(&mtx_analyzer_printer);
+
   //long double moment[2][cpu_CorN];
 
   proc_stat_1cpu10_T cpu_data[2][cpu_CorN];
@@ -113,8 +115,8 @@ void *analyzer(void* watcher_tbl){
     
     char *msg_aa = get_msg_from_rb_ra(rb_ra);
     
-    system("clear");
-    printf("%s\n","average usage cpu:");
+    // system("clear");
+    // printf("%s\n","average usage cpu:");
 
     for(int i = 0; i < cpu_CorN; i++){  
       msg = (msg_aa + (i * msg_size));
@@ -132,17 +134,20 @@ void *analyzer(void* watcher_tbl){
           else  pair_ready = PAIR_READY;
 
           if(pair_ready == PAIR_READY){
+            mtx_lock(&mtx_analyzer_printer);
             ptr_avr[i] = calculate_avr_1cpu(&cpu_data[k][i], &cpu_data[m][i]);
+            cnd_signal(&cnd_ap);
+            mtx_unlock(&mtx_analyzer_printer);
             //send to printer
-            if(pair_ready == PAIR_READY){
-              if(i == 0){
-                printf("\tcpu: %12.2Lf%%\n", ptr_avr[i]);
-              }
-              else{
-                printf("\tcpu%02d: %10.2Lf%%\n", i, ptr_avr[i]);
-              }
-              fflush(stdout);
-            }
+            // if(pair_ready == PAIR_READY){
+            //   if(i == 0){
+            //     printf("\tcpu: %12.2Lf%%\n", ptr_avr[i]);
+            //   }
+            //   else{
+            //     printf("\tcpu%02d: %10.2Lf%%\n", i, ptr_avr[i]);
+            //   }
+            //   fflush(stdout);
+            // }
           }
           k = ++k > 1 ? 0 : 1;
           m = ++m > 1 ? 0 : 1;

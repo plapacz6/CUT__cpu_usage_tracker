@@ -19,6 +19,7 @@ ring_buffer_T* rb_create(void* void_data,size_t data_type_size, size_t number_of
     prb->count = 0;
     cnd_init(&prb->nonempty);
     cnd_init(&prb->nonfull);
+    mtx_init(&prb->mtx, mtx_plain);
     char *char_data = (char*)void_data;
     for(int i = 0; i < prb->size; i++){
         /* 
@@ -31,9 +32,12 @@ ring_buffer_T* rb_create(void* void_data,size_t data_type_size, size_t number_of
     return prb;
 }
 void rb_destroy(ring_buffer_T* prb){
+    cnd_destroy(&prb->nonempty);
+    cnd_destroy(&prb->nonfull);
+    mtx_destroy(&prb->mtx);
     if(prb != NULL){
         free(prb);
-    }
+    }    
 }
 /**
  * @brief returns a pointer to one 'box' in the data table, 

@@ -15,11 +15,11 @@ endif()
 if(CMAKE_C_COMPILER EQUAL "LLVM Clang")
     target_compile_options(cut__cpu_usage_tracker PRIVATE -std=c11 -Weverything )
 endif()
-target_compile_definitions(cut__cpu_usage_tracker PRIVATE TEST_ON)
 target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:SIGTERM_handler>)
 target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:ring_buffer>)
 target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:reader>)
 target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:analyzer>)
+target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:printer>)
 #target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:logger>)
 target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:watchdog>)
 target_link_libraries(cut__cpu_usage_tracker PRIVATE pthread)
@@ -36,6 +36,7 @@ add_library( ring_buffer OBJECT ./ring_buffer.c)
 add_library( watchdog OBJECT ./watchdog.c)
 add_library( reader OBJECT ./reader.c)
 add_library( analyzer OBJECT ./analyzer.c)
+add_library( printer OBJECT ./printer.c)
 
 list(APPEND my_objects 
     SIGTERM_handler
@@ -43,7 +44,8 @@ list(APPEND my_objects
     #logger
     watchdog
     reader
-    analyzer    
+    analyzer 
+    printer   
 )
 foreach(my_object IN LISTS ${my_objects} )    
     set_property(TARGET ${my_object} PROPERTY C_STANDARD 11)

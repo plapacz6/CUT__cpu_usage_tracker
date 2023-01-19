@@ -1,5 +1,5 @@
 /*************************  TESTS ************************/
-#ifdef TEST_ON
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,4 +67,4 @@ int main(){
     }
     return 0;
 }
-#endif //TEST_ON
+

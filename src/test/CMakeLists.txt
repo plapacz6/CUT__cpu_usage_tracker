@@ -17,8 +17,6 @@ target_link_libraries(SIGTERM_handler_test PRIVATE pthread)
 add_executable(ring_buffer_test
   ./ring_buffer_test.c  
 )
-target_compile_definitions(ring_buffer_test PRIVATE TEST_ON)
-target_compile_options(ring_buffer_test PRIVATE -pthread)
 target_link_libraries(ring_buffer_test PRIVATE $<TARGET_OBJECTS:ring_buffer>)
 target_link_libraries(ring_buffer_test PRIVATE pthread)
 
@@ -63,8 +61,7 @@ target_link_libraries(analyzer_test PRIVATE pthread)
 
 ########################################################################
 
-foreach(my_target IN LISTS ${my_objects})
-  #target_compile_definitions(my_target PUBLIC TEST_ON)
+foreach(my_target IN LISTS ${my_objects})  
   if(CMAKE_C_COMPILER  EQUAL "GNU Compiler Collection")    
       target_compile_options(my_target PRIVATE -std=c11 -Wall -Wextra )
   elseif(CMAKE_C_COMPILER EQUAL "LLVM Clang")

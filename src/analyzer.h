@@ -28,6 +28,8 @@ typedef struct proc_stat_1cpu10_TT{
   long double guest_nice;
 } proc_stat_1cpu10_T;
 
+extern long double *ptr_avr;
+
 void destroy_avr_array();
 void *analyzer(void* watcher_tbl);
 
