@@ -39,6 +39,8 @@ void *printer(void* watcher_tbl){
                 printf("\tcpu%02d: %10.2Lf%%\n", i, ptr_avr[i]);
               }
               fflush(stdout);
+
+              //menu ctl+c = end
             
     }//for cpu_CorN
     mtx_unlock(&mtx_analyzer_printer);
