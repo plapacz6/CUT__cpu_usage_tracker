@@ -47,7 +47,7 @@ typedef struct ring_buffer_TT {
 /**
  * @brief ring_buffer for pointers to user data
  * 
- * User must provide table of data, and ring buffer serverves to store pointers to 
+ * User must provide table of data, and ring buffer serves to store pointers to 
  * cells of that table. 
  * 
  * Buffer constructor calculate pointers to cells based on pointer to table (1 arg)
@@ -66,7 +66,5 @@ void rb_destroy(ring_buffer_T* prb);
 
 void* rb_get_back_hook(ring_buffer_T *prb);
 void* rb_get_front_hook(ring_buffer_T *prb);
-void rb_log(ring_buffer_T *prb, const char * msg);
-
 
 #endif //ring_BUFFER_H

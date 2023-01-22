@@ -1,12 +1,8 @@
 #include <stdio.h>
-
 #include <malloc.h>
 #include <assert.h>
+
 #include "ring_buffer.h"
-
-#define LOGGER_BUFFER_SIZE (1025)
-extern char *ptr_logger_buffer;
-
 
 ring_buffer_T* rb_create(void* void_data,size_t data_type_size, size_t number_of_data){
     ring_buffer_T *prb = 
@@ -80,6 +76,3 @@ void* rb_get_front_hook(ring_buffer_T *prb){
     return el;
 }
 
-void rb_log(ring_buffer_T *prb, const char * msg){
-    fprintf(stderr, "ring_buffer: %p: %s", prb, msg);
-}

@@ -9,9 +9,11 @@
 #include <pthread.h>
 #include <assert.h>
 #include "../SIGTERM_handler.h"
+#include "../ring_buffer.h"
 
-FILE *fstat = NULL;
-FILE *flog = NULL;
+
+
+//FILE *flog = NULL;
 
 
 volatile sig_atomic_t stop_main_loop = 0;
@@ -29,6 +31,44 @@ void *semiwatchdog(void* sec){
   printf("%s\n", "this message shoundn't be visible. SIGTERM not raised.");  
   printf("%s\n","SIGTREM handler TEST: FAIL");
   exit(1);
+}
+
+//logger
+void close_log_file(){
+  fprintf(stderr, "%s\n", "logger file closed");
+}
+void destroy_logger_buffer(){
+  fprintf(stderr, "%s\n", "logger_buffer destroyed");
+}
+
+//reader
+char* buff_M;
+FILE *proc_stat_file;
+char *G_msg_array;
+ring_buffer_T *rb_ra;
+char *rb_ra_data_table;
+
+void destroy_buff_M(char* buffM){
+  fprintf(stderr, "%s\n", "reader buffM destroyed");
+}
+int destroy_msg_array(char* msg_a){
+  fprintf(stderr, "%s\n", "reader ring buffer msg_array destoryed");
+  return 0;
+}
+int destroy_rb_ra_data_table(char* data_table){
+  fprintf(stderr, "%s\n", "reder ring buffer data_table destroyed");
+  return 0;
+}
+void close_proc_stat_file(){
+  fprintf(stderr, "%s\n", "reader proc stat file closed");
+}
+
+//analzer
+void destroy_avr_array(){
+  fprintf(stderr, "%s\n", "analyzer avr array destroyed");
+}
+
+void cancel_all_pthreads(){
 }
 
 /**

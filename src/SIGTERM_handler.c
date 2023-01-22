@@ -1,16 +1,18 @@
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <stdlib.h>
-#include <stdlib.h>
-
 #include <unistd.h>
-//#include <errno.h>
+#include <pthread.h>
+#include <threads.h>
 
-// #include "logger.h"
-// #include "reader.h"
-// #include "ring_buffer.h"
+#include "logger.h"
+#include "reader.h"
+#include "analyzer.h"
+#include "printer.h"
+#include "watchdog.h"
+#include "mutexes.h"
+
 #include "SIGTERM_handler.h"
 
 void SIGTERM_handler(int signum){
@@ -22,6 +24,24 @@ void SIGTERM_handler(int signum){
   
   if(signum == SIGTERM || signum == SIGINT){
     
+    cancel_all_pthreads();
+
+    //logger
+    close_log_file();
+    destroy_logger_buffer();
+
+    //reader
+    reader_release_resources();
+
+    //analyzer
+    destroy_avr_array();    
+
+    //printer
+    
+    //mutexes
+    destroy_mutexes();
+
+    fprintf(stderr, "%s\n", "resources are released");
     quick_exit(0);
   }
 
@@ -36,9 +56,9 @@ void install_SIGTERM_handler(){
     fprintf(stderr, "%s\n", "SIGTERM handler registration error.");
     exit(1);
   }
-  // if(0 != sigaction(SIGINT, &action, NULL)){
-  //   fprintf(stderr, "%s\n", "SIGTERM handler registration error.");
-  //   exit(1);
-  // }  
+  if(0 != sigaction(SIGINT, &action, NULL)){
+    fprintf(stderr, "%s\n", "SIGTERM handler registration error.");
+    exit(1);
+  }  
 }
 
