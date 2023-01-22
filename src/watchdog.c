@@ -7,17 +7,39 @@
 
 #include <errno.h>
 
-watchdog_entry_T watchdog_table[4];
+watchdog_entry_T watchdog_table[WATCH_TBL_SIZE];
 
 void register_in_watchdog(cell_in_watchdog_table_T idx, pthread_t thrd){
-  watchdog_table[idx].ptr_pthread_id = &thrd;
+  watchdog_table[idx].ptr_pthread_id = thrd;
   watchdog_table[idx].exists = 1;   
-}
-
-void check_in_watcher(cell_in_watchdog_table_T idx){
   watchdog_table[idx].active = 1;   
 }
 
+void checkin_watchdog(cell_in_watchdog_table_T idx){
+  watchdog_table[idx].active = 1;     
+}
+
+void cancel_all_pthreads(){
+  int i;
+  for(i = 0; i < 4; i++){   
+    if(watchdog_table[i].exists) {
+      int ret = pthread_cancel(watchdog_table[i].ptr_pthread_id);
+      if(0 != ret ){                 
+        fprintf(stderr, "can't cancel phread: %lu\n", 
+            watchdog_table[i].ptr_pthread_id);
+      }    
+      watchdog_table[i].exists = 0;    
+      //DEBUG    
+      fprintf(stderr, "watchdog: cancellation of phread: %lu\n", 
+      watchdog_table[i].ptr_pthread_id);    
+    }
+    else{
+      //DEBUG
+      fprintf(stderr, "watchdog: cancellation of phread THREAD DON'D EXISTS: %lu\n", 
+      watchdog_table[i].ptr_pthread_id);    
+    }
+  }
+}
 
 /**
  * @brief watchdog for 4 threads
@@ -33,14 +55,16 @@ void* watchdog(){
         if(watchdog_table[i].exists != 0){
           if(! watchdog_table[i].active){                    
 
-              int ret = 0; //pthread_kill(*(watchdog_table[i].ptr_pthread_id), SIGTERM);
-              //int ret = pthread_cancel(*(watchdog_table[i].ptr_pthread_id));
+              int ret = pthread_cancel(watchdog_table[i].ptr_pthread_id);              
+            
+              fprintf(stderr, "watchdog: cancellation of pthread: %lu\n", 
+                  watchdog_table[i].ptr_pthread_id);
+
               if(0 != ret ){            
                 int errsv = errno;
-                if(errsv == ESRCH) fprintf(stderr, "%s\n","no such process");
+                if(errsv == ESRCH) fprintf(stderr, "%s\n","watchdog: no such process");
               }
-              //thread canceled
-              //printf("%s", "K"); fflush(stdout);
+
               watchdog_table[i].exists = 0;
           }                    
           else { watchdog_table[i].active = 0; }  
