@@ -1,10 +1,10 @@
 #ifndef LOGGER_H
 #define LOGGER_H
-#include "ring_buffer.h"
 
-extern FILE *flog;  /**<  logger file */
-extern ring_buffer_T *ptr_logger_buffer;
-void* logger(void *ptr_watchdog_place_4_logger);
-void log_msg(char *msg);
+void close_log_file();
+void destroy_logger_buffer();
+void write_log(char *who, char *msg, char* arg);
+
+void* logger(void *arg);
 
 #endif // LOGGER_H
