@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <unistd.h>
+#include "logger.h"
 #include "watchdog.h"
 #include "mutexes.h"
 
@@ -25,18 +26,16 @@ void cancel_all_pthreads(){
     if(watchdog_table[i].exists) {
       int ret = pthread_cancel(watchdog_table[i].ptr_pthread_id);
       if(0 != ret ){                 
-        fprintf(stderr, "can't cancel phread: %lu\n", 
-            watchdog_table[i].ptr_pthread_id);
+        write_log("watchdog", "can't cancel phread: %lu\n",
+          watchdog_table[i].ptr_pthread_id);
       }    
-      watchdog_table[i].exists = 0;    
-      //DEBUG    
-      fprintf(stderr, "watchdog: cancellation of phread: %lu\n", 
-      watchdog_table[i].ptr_pthread_id);    
+      watchdog_table[i].exists = 0;          
+      write_log("watchdog", "watchdog: cancellation of phread: %lu", 
+        watchdog_table[i].ptr_pthread_id);    
     }
-    else{
-      //DEBUG
-      fprintf(stderr, "watchdog: cancellation of phread THREAD DON'D EXISTS: %lu\n", 
-      watchdog_table[i].ptr_pthread_id);    
+    else{      
+      write_log("watchdog", "cancellation of phread THREAD DON'D EXISTS: %lu", 
+      watchdog_table[i].ptr_pthread_id);          
     }
   }
 }
@@ -57,12 +56,13 @@ void* watchdog(){
 
               int ret = pthread_cancel(watchdog_table[i].ptr_pthread_id);              
             
-              fprintf(stderr, "watchdog: cancellation of pthread: %lu\n", 
-                  watchdog_table[i].ptr_pthread_id);
+              write_log("watchdog", "cancellation of pthread: %lu\n", 
+                  watchdog_table[i].ptr_pthread_id);           
 
               if(0 != ret ){            
                 int errsv = errno;
-                if(errsv == ESRCH) fprintf(stderr, "%s\n","watchdog: no such process");
+                if(errsv == ESRCH) 
+                write_log("watchdog", "%s", "watchdog: cancellation - no such process");
               }
 
               watchdog_table[i].exists = 0;
