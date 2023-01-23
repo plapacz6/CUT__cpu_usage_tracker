@@ -42,27 +42,8 @@ void destroy_logger_buffer(){
 }
 
 //reader
-char* buff_M;
-FILE *proc_stat_file;
-char *G_msg_array;
-ring_buffer_T *rb_ra;
-char *rb_ra_data_table;
-
-void destroy_buff_M(char* buffM){
-  fprintf(stderr, "%s\n", "reader buffM destroyed");
+void reader_release_resources(void){
 }
-int destroy_msg_array(char* msg_a){
-  fprintf(stderr, "%s\n", "reader ring buffer msg_array destoryed");
-  return 0;
-}
-int destroy_rb_ra_data_table(char* data_table){
-  fprintf(stderr, "%s\n", "reder ring buffer data_table destroyed");
-  return 0;
-}
-void close_proc_stat_file(){
-  fprintf(stderr, "%s\n", "reader proc stat file closed");
-}
-
 //analzer
 void destroy_avr_array(){
   fprintf(stderr, "%s\n", "analyzer avr array destroyed");

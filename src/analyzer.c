@@ -18,10 +18,8 @@
  */
 void parse_msg(char *msg, proc_stat_1cpu10_T *data_1cpu) {
 
-  sscanf(msg, 
-        //%SIZE_Hs %Lf %Lf %Lf %Lf %Lf %Lf %Lf %*f %*f %*f",
-        "%*s %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %*s", 
-        //header, 
+  sscanf(msg,         
+        "%*s %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %*s",         
         &data_1cpu->user,
         &data_1cpu->nice,
         &data_1cpu->system,
@@ -42,7 +40,9 @@ void parse_msg(char *msg, proc_stat_1cpu10_T *data_1cpu) {
  * @param data_1cpu2 
  * @return long double 
  */
-long double calculate_avr_1cpu(proc_stat_1cpu10_T *data_1cpu1, proc_stat_1cpu10_T *data_1cpu2){
+long double calculate_avr_1cpu(
+    proc_stat_1cpu10_T *data_1cpu1, 
+    proc_stat_1cpu10_T *data_1cpu2){
 
   long double     avr = 
     ((( data_1cpu1->user + 
@@ -73,14 +73,11 @@ long double calculate_avr_1cpu(proc_stat_1cpu10_T *data_1cpu1, proc_stat_1cpu10_
         data_1cpu2->iowait +
         data_1cpu2->irq +
         data_1cpu2->softirq )) );
-  return avr * 100;
+  return avr * 100;  // %
 }
 
 long double *ptr_avr;
 
-// size_t cpu_cors_N(size_t n, int get_);
-// size_t get_msg_size(size_t n, int get_);
-// char* get_msg_from_rb_ra(ring_buffer_T *prb); 
 /**************************************************/
 long double *create_avr_array(size_t cpu_CorN){
   ptr_avr = calloc(sizeof(long double), cpu_CorN);
@@ -95,38 +92,39 @@ void destroy_avr_array(){
   ptr_avr = NULL;
 }
 /**************************************************/
-void *analyzer(void* watcher_tbl){
+void *analyzer(void* arg){
 
-  size_t msg_size = get_msg_size(0, 0);
+  size_t size_msg1core = get_size_msg1core(0, 0); /**< size of raw message describing 1 cpu core*/
   size_t cpu_CorN = cpu_cors_N(0, 0);
   
   mtx_unlock(&mtx_analyzer_printer);
   ptr_avr = create_avr_array(cpu_CorN);  
-  mtx_unlock(&mtx_analyzer_printer);
+  mtx_unlock(&mtx_analyzer_printer);  
 
-  //long double moment[2][cpu_CorN];
+  char *msg_all_cors; /**< raw message describing whole cpu*/
+  char *msg;    /**< part of raw message describing whole cpu, concern 1 core*/
 
-  proc_stat_1cpu10_T cpu_data[2][cpu_CorN];
-  char *msg;
+  #define PAIR_READY (2)
   int pair_ready = 0;  /**< control if there are two set of data for calculate_avr()*/
   int k = 0;
   int m = 1;
-  while(1){
+  proc_stat_1cpu10_T cpu_data[2][cpu_CorN]; /**< array of struct with values for 1 core*/
+
+  while(1){  //main loop
     
-    char *msg_aa = get_msg_from_rb_ra(rb_ra);
+    msg_all_cors = get_msg_from_rb_ra();  
     
-    // system("clear");
-    // printf("%s\n","average usage cpu:");
+    //#define DEBUG_PRINT_ON        
+    #ifdef DEBUG_PRINT_ON       //DEBUG
+    //printf("%s\n", "analyzer:");
+    #endif
 
     for(int i = 0; i < cpu_CorN; i++){  
-      msg = (msg_aa + (i * msg_size));
-      #define PAIR_READY (2)
       
-      if(msg_aa[0] != '\0'){  //-----------------------------------
+      msg = (msg_all_cors + (i * size_msg1core));
+            
+      if(msg_all_cors[0] != '\0'){  //-----------------------------------
 
-        //#define PRINTER_ON
-
-        #ifndef PRINTER_ON
         if(msg[0] != '\0'){        
           parse_msg( msg, &cpu_data[k][i]);
 
@@ -137,43 +135,35 @@ void *analyzer(void* watcher_tbl){
             mtx_lock(&mtx_analyzer_printer);
             ptr_avr[i] = calculate_avr_1cpu(&cpu_data[k][i], &cpu_data[m][i]);
             cnd_signal(&cnd_ap);
-            mtx_unlock(&mtx_analyzer_printer);
-            //send to printer
-            // if(pair_ready == PAIR_READY){
-            //   if(i == 0){
-            //     printf("\tcpu: %12.2Lf%%\n", ptr_avr[i]);
-            //   }
-            //   else{
-            //     printf("\tcpu%02d: %10.2Lf%%\n", i, ptr_avr[i]);
-            //   }
-            //   fflush(stdout);
-            // }
+            mtx_unlock(&mtx_analyzer_printer);           
           }
           k = ++k > 1 ? 0 : 1;
-          m = ++m > 1 ? 0 : 1;
-          //msg[0] = '\0';          
+          m = ++m > 1 ? 0 : 1;          
         } //msg[0] == 0
         else{
           fprintf(stderr, "%s\n", "analyzer: empty msg from ring_buffer");
         }
-        
-        #else      //DEBUG
+                      
+        #ifdef DEBUG_PRINT_ON     //DEBUG
         if(msg[0] != '\0'){
           printf("\nmsg %d:%s\n", i, msg);       
-          msg[0] = '\0';
-        }
+          msg[0] = '\0';}
         else {
-          printf("\nmsg %d:%s\n", i, "...empty");
-        }
+          printf("\nmsg %d:%s\n", i, "...empty");}
         #endif
         
-      }   //-----------------------------------
-      else{  //msg_aa == 0
-        fprintf(stderr, "%s\n", "analyzer: empty     msg_aa    from ring_buffer");
-      }    //-----------------------------------
+      } //-----------------------------------------------------------------
+      else{  //msg_all_cors == 0
+        fprintf(stderr, "%s\n", "analyzer: empty     msg_all_cors    from ring_buffer");
+      } //------------------------------------------------------------------
     }//for  cpu_CorN
-    sleep(1);
-    msg_aa[0] = '\0';
+
+    mtx_lock(&mtx_watchdog);
+    checkin_watchdog(WATCH_ANALYZER);
+    mtx_unlock(&mtx_watchdog);
+
+    //sleep(1);
+    msg_all_cors[0] = '\0';   //raw message used
   }//while(1)
 }
 #undef PAIR_READY

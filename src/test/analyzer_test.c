@@ -8,6 +8,36 @@
 #include "../analyzer.h"
 #include "../mutexes.h"
 
+/**********************   dummy function for SIGTERM hander *******************/
+//logger
+void close_log_file(){
+}
+void destroy_logger_buffer(){
+}
+//watchdog
+void checkin_watchdog(cell_in_watchdog_table_T idx){  
+}
+void cancel_all_pthreads(){
+}
+// //reader
+// char* buff_M;
+// FILE *proc_stat_file;
+// char *G_msg_array;
+// ring_buffer_T *rb_ra;
+// char *rb_ra_data_table;
+// void destroy_buff_M(char* buffM){
+// }
+// int destroy_msg_array(char* msg_a){
+// }
+// int destroy_rb_ra_data_table(char* data_table){
+// }
+// void close_proc_stat_file(){
+// }
+// //analzer
+// void destroy_avr_array(){
+// }
+/***********************************************************************/
+
 void parse_msg(char *msg, proc_stat_1cpu10_T *data_1cpu);
 long double calculate_avr_1cpu(proc_stat_1cpu10_T *data_1cpu1, proc_stat_1cpu10_T *data_1cpu2);
 
@@ -55,46 +85,6 @@ int test_cacluate_avr_1cpu(){
   return 0;
 }
 
-
-
-mtx_t mtx_watchdog;
-mtx_t mtx_logger;
-mtx_t mtx_reader_analyzer;
-mtx_t mtx_analyzer_printer;  
-cnd_t cnd_ra;
-cnd_t cnd_ap;
-cnd_t cnd_log;
-
-#define NUMBER_OF_MUTEXES (4)
-
-mtx_t* cut_mutexes[NUMBER_OF_MUTEXES] = { 
-  &mtx_watchdog,
-  &mtx_logger,
-  &mtx_reader_analyzer, 
-  &mtx_analyzer_printer,
-};
-
-
-void init_mutexes(){
-  for(int i = 0; i < NUMBER_OF_MUTEXES; i++){
-    if(thrd_success != mtx_init(cut_mutexes[i], mtx_plain)){
-      fprintf(stderr, "%s\n", "mutex can't be initialized");
-      exit(1);
-    }
-  }
-  cnd_init(&cnd_ra);
-  cnd_init(&cnd_ap);
-  cnd_init(&cnd_log);
-}
-
-void destroy_mutexes(){  
-  for(int i = 0; i < NUMBER_OF_MUTEXES; i++){
-    mtx_destroy(cut_mutexes[i]);
-  }
-  cnd_destroy(&cnd_ra);
-  cnd_destroy(&cnd_ap);
-  cnd_destroy(&cnd_log);  
-}
 
 
 int main(){

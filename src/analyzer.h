@@ -28,10 +28,26 @@ typedef struct proc_stat_1cpu10_TT{
   long double guest_nice;
 } proc_stat_1cpu10_T;
 
+/**
+ * @brief pointer to array of calculated average usage for each cpu core
+ * 
+ * Array is created by analyzer thred and pointer is then initialized.
+ * Printer thred wait on conditional variable for signal from analyzer, that 
+ * array is created and pointer to it initialzed, and some reasonable average
+ * values are stored in that array.
+ */
 extern long double *ptr_avr;
 
+
 void destroy_avr_array();
-void *analyzer(void* watcher_tbl);
+
+/**
+ * @brief main function of analyzer thread
+ * 
+ * @param watcher_tbl 
+ * @return void* 
+ */
+void *analyzer(void* arg);
 
 
 #endif // ANALYZER_H
