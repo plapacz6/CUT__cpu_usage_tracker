@@ -27,7 +27,7 @@ void *printer(void* arg){
     cnd_wait(&cnd_ap, &mtx_analyzer_printer);
     assert(ptr_avr != NULL);
 
-    //system("clear");
+    system("clear");
     printf("%s\n","printer:");  //DEBUG  ""
     printf("%s\n","average usage cpu:");
 

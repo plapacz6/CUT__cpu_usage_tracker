@@ -7,7 +7,9 @@
 #include <threads.h>
 #include <unistd.h>
 #include <assert.h>
+#include "../logger.h"
 #include "../reader.h"
+
 
 
 #define PR_TEST_FUNC_NAME(X) printf(\
@@ -18,9 +20,9 @@
 typedef int cell_in_watchdog_table_T;
 void checkin_watchdog(cell_in_watchdog_table_T idx){  
 }
-void write_log(char *who, char *msg, char* arg){
-  fprintf(stderr, "%s %s %s\n", who, msg, arg);
-}
+// void write_log(char *who, char *msg, char* arg){
+//   fprintf(stderr, "%s %s %s\n", who, msg, arg);
+// }
 
 /***** internal reader function not exported in reader.h : ***********/
 int cat_proc_stat_file(char *fname);

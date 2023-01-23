@@ -46,8 +46,7 @@ target_link_libraries(watchdog_test PRIVATE pthread)
 add_executable(reader_test
   ./reader_test.c  
 )
-#target_link_libraries(reader_test PRIVATE $<TARGET_OBJECTS:watchdog>)
-#target_link_libraries(reader_test PRIVATE $<TARGET_OBJECTS:logger>)
+target_link_libraries(reader_test PRIVATE $<TARGET_OBJECTS:logger>)
 target_link_libraries(reader_test PRIVATE $<TARGET_OBJECTS:reader>)
 target_link_libraries(reader_test PRIVATE $<TARGET_OBJECTS:ring_buffer>)
 target_link_libraries(reader_test PRIVATE $<TARGET_OBJECTS:mutexes>)
