@@ -38,8 +38,11 @@ int main(){
   pthread_join(pthread_logger, NULL);
   destroy_mutexes();
   
-
-  write_log("main", "nr", "4. on stderr");
+  size_t a = 4;
+  int b = 5;  
+  write_log("main", "nr4. on stderr %lu",a );
+  write_log("main", "nr4. on stderr %d",b );
+  write_log("main", "nr4. on stderr %s","C" );
   fflush(stderr);
 
   FILE *flog = fopen("/var/tmp/CUT__cpu_usage_tracker.log", "r");

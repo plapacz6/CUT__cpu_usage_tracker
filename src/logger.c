@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
+#include <stdarg.h>
 #include <pthread.h>
 #include <threads.h>
 
@@ -43,9 +44,15 @@ void close_log_file(){
 /********************************************************/
 int logger_buffer_exists = 0;
 ring_buffer_T *ptr_logger_buffer = NULL;
-#define NUMBER_OF_ENTRY (10)
-#define MAX_LENGTH_OF_ENTRY (256)
+enum {
+   NUMBER_OF_ENTRY = 10,
+   MAX_LENGTH_OF_ENTRY  = 256,
+   FMT_BUFFOR_SIZE = 256,
+   TIMESTAMP_BUF_LEN = 28,
+};
 char logger_data[NUMBER_OF_ENTRY][MAX_LENGTH_OF_ENTRY];
+
+/* ------------------------------------------------*/
 
 ring_buffer_T *create_logger_buffer(){
   ring_buffer_T *ptr_buffer = rb_create(
@@ -61,6 +68,9 @@ ring_buffer_T *create_logger_buffer(){
     return ptr_buffer;
   }  
 }
+
+/* ------------------------------------------------*/
+
 void destroy_logger_buffer(){
   if(ptr_logger_buffer) {
     free(ptr_logger_buffer);
@@ -76,6 +86,9 @@ void put_msg(char *msg){
   strncpy(ptr4msg, msg, MAX_LENGTH_OF_ENTRY - 1);  
   ptr4msg[MAX_LENGTH_OF_ENTRY -1] = '\0';
 }
+
+/* ------------------------------------------------*/
+
 void get_msg(char *msg){  
   strncpy(
     msg,
@@ -84,13 +97,63 @@ void get_msg(char *msg){
   );
   msg[MAX_LENGTH_OF_ENTRY - 1] = '0';
 }
-void write_log(char *who, char *msg, char* arg){
+
+/* ------------------------------------------------*/
+
+void write_log(char who[static 1], char fmt[static 1], ...){
+
+    //generate timestamp
   time_t now = time(NULL);
   struct tm* tm_now = localtime(&now);
-  char when[28];
-  strftime(when, 26, "%Y%m%d_%H:%M:%S", tm_now);
-  char msglog[MAX_LENGTH_OF_ENTRY + 28];
-  sprintf(msglog, "%s:%s: %s %s", who, when, msg, arg);
+  char when[TIMESTAMP_BUF_LEN] = {};
+  strftime(when, TIMESTAMP_BUF_LEN - 1, "%Y%m%d_%H:%M:%S", tm_now);
+
+  size_t fmt_len = strlen(fmt);
+  char fmt_buff[FMT_BUFFOR_SIZE] = {};
+  char msglog[MAX_LENGTH_OF_ENTRY] = {};
+
+  size_t free_place = FMT_BUFFOR_SIZE - 1;
+  strncpy(fmt_buff, "%s:%s:", 7);  //7
+  free_place -= 6;
+  free_place -= TIMESTAMP_BUF_LEN;
+  strncat(fmt_buff, fmt, free_place);
+  fmt_buff[FMT_BUFFOR_SIZE - free_place] = '\0';    
+
+  va_list arg;
+  va_start(arg, fmt);
+  bool arg_interpratation = false;
+  for(int i = 0; fmt[i] != '\0'; i++){
+    if(fmt[i] == '%' && !arg_interpratation){
+      switch(fmt[i + 1]){
+        case 'l':
+          if(fmt[i + 2] == 'u'){  //ul
+            i += 2;              
+            sprintf(msglog, fmt_buff, who, when, va_arg(arg, unsigned long));              
+            arg_interpratation = true;
+          }
+          else {    //l
+            break;
+          }            
+          break;
+        case 'd':
+          i++;
+          sprintf(msglog, fmt_buff, who, when, va_arg(arg, int));              
+          arg_interpratation = true;
+          break;
+        case 's':
+          i++;
+          sprintf(msglog, fmt_buff, who, when, va_arg(arg, char*));              
+          arg_interpratation = true;
+          break;
+      }
+    }
+  }
+  if(!arg_interpratation){
+    sprintf(msglog, "%s:%s :%s", who, when, fmt);
+    arg_interpratation = true;
+  }
+  va_end(arg);
+
   if(logger_buffer_exists){
     put_msg(msglog);
   }
@@ -98,6 +161,7 @@ void write_log(char *who, char *msg, char* arg){
     fprintf(stderr,"%s\n", msglog); fflush(stderr);
   }
 }
+/* ------------------------------------------------*/
 /**
  * @brief if logger phread is canceled function write_log switch on printing on stderr
  * 
