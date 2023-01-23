@@ -27,7 +27,6 @@ add_executable(logger_test
   ./logger_test.c  
 )
 target_link_libraries(logger_test PRIVATE $<TARGET_OBJECTS:ring_buffer>)
-target_link_libraries(logger_test PRIVATE $<TARGET_OBJECTS:watchdog>)
 target_link_libraries(logger_test PRIVATE $<TARGET_OBJECTS:logger>)
 target_link_libraries(logger_test PRIVATE $<TARGET_OBJECTS:mutexes>)
 target_link_libraries(logger_test PRIVATE pthread)
@@ -83,7 +82,7 @@ add_test(NAME SIGTERM_handler__test COMMAND SIGTERM_handler_test)
 
 add_test(NAME ring_buffer__test COMMAND ring_buffer_test)
 
-#add_test(NAME logger__test COMMAND logger_test)
+add_test(NAME logger__test COMMAND logger_test)
 
 add_test(NAME watchdog__test COMMAND watchdog_test)
 # set_tests_properties( __test

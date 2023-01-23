@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
+#include <pthread.h>
+#include <threads.h>
 
 #include "mutexes.h"
 #include "ring_buffer.h" 
@@ -68,18 +70,19 @@ void destroy_logger_buffer(){
 }
 /********************************************************/
 void put_msg(char *msg){
-  char **ptr4msg = NULL;  
-  ptr4msg = (char**) rb_get_back_hook(ptr_logger_buffer),
+  char *ptr4msg = NULL;  
+  ptr4msg = (char*) rb_get_back_hook(ptr_logger_buffer),
   assert(ptr4msg != NULL);
-  strncpy(*ptr4msg, msg, MAX_LENGTH_OF_ENTRY - 1);  
-  *ptr4msg[MAX_LENGTH_OF_ENTRY -1] = '\0';
+  strncpy(ptr4msg, msg, MAX_LENGTH_OF_ENTRY - 1);  
+  ptr4msg[MAX_LENGTH_OF_ENTRY -1] = '\0';
 }
 void get_msg(char *msg){  
   strncpy(
     msg,
-    *( (char**)rb_get_front_hook(ptr_logger_buffer)),
+    (char*)rb_get_front_hook(ptr_logger_buffer),
     MAX_LENGTH_OF_ENTRY - 1
   );
+  msg[MAX_LENGTH_OF_ENTRY - 1] = '0';
 }
 void write_log(char *who, char *msg, char* arg){
   time_t now = time(NULL);
@@ -92,7 +95,7 @@ void write_log(char *who, char *msg, char* arg){
     put_msg(msglog);
   }
   else {
-    fprintf(stderr,"%s\n", msglog);
+    fprintf(stderr,"%s\n", msglog); fflush(stderr);
   }
 }
 /**
@@ -105,6 +108,8 @@ void logger_clean_up(void *arg){
   destroy_logger_buffer();  //logger_buffer_exist ==> 0
   close_log_file();
   mtx_unlock(&mtx_logger);
+  logger_buffer_exists = 0;
+  fprintf(stderr, "logger: resouces released, switching on stderr");
 }
 /********************************************************/
 void* logger(void *arg){  
@@ -112,31 +117,28 @@ void* logger(void *arg){
   ptr_logger_buffer = create_logger_buffer();
   open_log_file();
   char msglog[MAX_LENGTH_OF_ENTRY + 28];
-    if(logger_buffer_exists){
-      while(1){
+  if(logger_buffer_exists){
+    while(1){
 
-        mtx_lock(&mtx_logger);
-          cnd_wait(&cnd_log, &mtx_logger);
-          get_msg(msglog);
-          fprintf(flog, "%s\n", msglog);
-        mtx_unlock(&mtx_logger);
-        
-        mtx_lock(&mtx_watchdog);
-        checkin_watchdog(WATCH_LOGGER);
-        mtx_unlock(&mtx_watchdog);
+      
+        get_msg(msglog);
+        fprintf(flog, "%s\n", msglog);
+        //fprintf(stderr, "logger: emul.flog:__%s\n", msglog);
+      
+      
+      mtx_lock(&mtx_watchdog);
+      checkin_watchdog(WATCH_LOGGER);
+      mtx_unlock(&mtx_watchdog);
 
-      }//while
+    }//while
+  }
+  else{  //only check in with watchdog 
+    while(1){
+      mtx_lock(&mtx_watchdog);
+      checkin_watchdog(WATCH_LOGGER);
+      mtx_unlock(&mtx_watchdog);
+      sleep(1);
     }
-    else{  //only watchdog checkin
-      while(1){
-        mtx_lock(&mtx_watchdog);
-        checkin_watchdog(WATCH_LOGGER);
-        mtx_unlock(&mtx_watchdog);
-        sleep(1);
-      }
-    } //if buffer exits      
+  } //if buffer exits       
   pthread_cleanup_pop(1);  
 }
-
-
-
