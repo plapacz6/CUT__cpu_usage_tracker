@@ -2,7 +2,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
-
+#include "logger.h"
 #include "analyzer.h"
 #include "watchdog.h"
 #include "ring_buffer.h"
@@ -141,7 +141,7 @@ void *analyzer(void* arg){
           m = ++m > 1 ? 0 : 1;          
         } //msg[0] == 0
         else{
-          fprintf(stderr, "%s\n", "analyzer: empty msg from ring_buffer");
+          write_log("analyzer", "%s", "analyzer: empty msg from ring_buffer");
         }
                       
         #ifdef DEBUG_PRINT_ON     //DEBUG
@@ -154,7 +154,7 @@ void *analyzer(void* arg){
         
       } //-----------------------------------------------------------------
       else{  //msg_all_cors == 0
-        fprintf(stderr, "%s\n", "analyzer: empty     msg_all_cors    from ring_buffer");
+        write_log("analyzer", "%s", "analyzer: empty     msg_all_cors    from ring_buffer");
       } //------------------------------------------------------------------
     }//for  cpu_CorN
 

@@ -61,6 +61,7 @@ add_executable(analyzer_test
 target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:reader>)
 target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:SIGTERM_handler>)
 target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:ring_buffer>)
+target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:logger>)
 target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:analyzer>)
 target_link_libraries(analyzer_test PRIVATE $<TARGET_OBJECTS:mutexes>)
 target_link_libraries(analyzer_test PRIVATE pthread)
