@@ -15,6 +15,8 @@
 #include "watchdog.h"
 #include "logger.h"
 
+volatile sig_atomic_t logger_done = 0;
+
 extern FILE *flog;
 extern int logger_buffer_exists;
 extern ring_buffer_T *ptr_logger_buffer;
@@ -71,12 +73,10 @@ ring_buffer_T *create_logger_buffer(){
 
 /* ------------------------------------------------*/
 
-void destroy_logger_buffer(){
-  if(ptr_logger_buffer) {
-    free(ptr_logger_buffer);
+void destroy_logger_buffer(){  
+    rb_destroy(ptr_logger_buffer);
     ptr_logger_buffer = NULL;
-    logger_buffer_exists = 0;
-  }    
+    logger_buffer_exists = 0;  
 }
 /********************************************************/
 void put_msg(char *msg){
@@ -158,7 +158,7 @@ void write_log(char who[static 1], char fmt[static 1], ...){
     put_msg(msglog);
   }
   else {
-    fprintf(stderr,"%s\n", msglog); fflush(stderr);
+    fprintf(stderr,"\n%s\n", msglog); fflush(stderr);
   }
 }
 /* ------------------------------------------------*/
@@ -168,10 +168,10 @@ void write_log(char who[static 1], char fmt[static 1], ...){
  * @param arg 
  */
 void logger_clean_up(void *arg){
-  mtx_lock(&mtx_logger);
+  //mtx_lock(&mtx_logger);
   destroy_logger_buffer();  //logger_buffer_exist ==> 0
   close_log_file();
-  mtx_unlock(&mtx_logger);
+  //mtx_unlock(&mtx_logger);
   logger_buffer_exists = 0;
   fprintf(stderr, "logger: resouces released, switching on stderr");
 }
@@ -180,9 +180,9 @@ void* logger(void *arg){
   pthread_cleanup_push(logger_clean_up, NULL);
   ptr_logger_buffer = create_logger_buffer();
   open_log_file();
-  char msglog[MAX_LENGTH_OF_ENTRY + 28];
+  char msglog[MAX_LENGTH_OF_ENTRY]; // + TIMESTAMP_BUF_LEN + FMT_BUFFOR_SIZE];
   if(logger_buffer_exists){
-    while(1){
+    while(!logger_done){
 
       
         get_msg(msglog);
@@ -204,5 +204,7 @@ void* logger(void *arg){
       sleep(1);
     }
   } //if buffer exits       
+  
+  pthread_exit(0);
   pthread_cleanup_pop(1);  
 }

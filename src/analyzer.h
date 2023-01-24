@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include "watchdog.h"
 #include "ring_buffer.h"
@@ -14,7 +15,7 @@
  * entry for one cpu in /proc/stat according to: man 5 proc
  * (first 10 position)
  */
-typedef struct proc_stat_1cpu10_TT{  
+typedef struct proc_stat_1cpu10_T{  
   //char cpuN [10];    // exmpl: "cpu12"
   long double user;
   long double nice;
@@ -28,6 +29,11 @@ typedef struct proc_stat_1cpu10_TT{
   long double guest_nice;
 } proc_stat_1cpu10_T;
 
+// #define PROC_STAT_1CPU10_1 \
+// struct proc_stat_1cpu10_T {.user = 1, .nice = 1, .system = 1, .idle = 1, .iowait = 1, \
+// .irq = 1, .softirq = 1, .steal = 1, .guest = 1, .guest_nice = 1}
+
+
 /**
  * @brief pointer to array of calculated average usage for each cpu core
  * 
@@ -38,8 +44,10 @@ typedef struct proc_stat_1cpu10_TT{
  */
 extern long double *ptr_avr;
 
-
-void destroy_avr_array();
+//for SIGTERM_handler
+volatile sig_atomic_t analyzer_done;
+//for main.c
+void analyzer_release_resources(void* arg);
 
 /**
  * @brief main function of analyzer thread

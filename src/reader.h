@@ -2,9 +2,13 @@
 #define READER_H
 #include <stdio.h>
 #include <stddef.h>
+#include <signal.h>
 
 //for SIGTERM_handler
-void reader_release_resources(void);
+extern volatile sig_atomic_t reader_done;
+
+//for main.c
+void reader_release_resources(void* arg);
 
 //reader-analyzer
 size_t cpu_cors_N(size_t n, int get_);

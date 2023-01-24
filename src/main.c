@@ -1,12 +1,11 @@
-#include <signal.h>
-#include <string.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <string.h>
 
-#include <stdlib.h>
 #include <stdlib.h>
 
 #include <pthread.h>
+#include <signal.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -26,9 +25,15 @@ now.tv_sec += 1;
 cnd_timedwait(cnd, mtx, &now);
 */
 
-int main(){  
+int printer_debug_on = 0;
+
+int main(int argc, char** argv){  
   srand(time(NULL));
   init_mutexes();
+
+  if(argc == 2 && argv[1][0] == 'd'){
+    printer_debug_on = 1;
+  }
   
   /* can't link to at_exit()  and  at_quick_exit() */
   // if(0 != at_quick_exit(release_resouces)){
@@ -84,19 +89,32 @@ int main(){
   }  
   register_in_watchdog(WATCH_PRINTER, pthread_printer);
 
-  pthread_t cup_phreads[5] = {
-    pthread_logger, 
-    pthread_reader,
-    pthread_analyzer,
-    pthread_printer,  
-    pthread_watchdog 
-  };
-  for(int i = 0; i < 5; i ++){
-    pthread_join(cup_phreads[i], NULL);
-    // if(0 != pthread_detach(cup_phreads[i])) {    
-    //   fprintf(stderr, "%s\n", "can't detached pthred");
-    //   raise(SIGTERM);
-    // }
-  }
+  // pthread_t cup_phreads[5] = {
+  //   [4] = pthread_logger, 
+  //   [2] = pthread_reader,
+  //   [0] = pthread_analyzer,
+  //   [1] = pthread_printer,  
+  //   [3] = pthread_watchdog 
+  // };
+  // for(int i = 1; i < 5; i ++){
+  //   pthread_join(cup_phreads[i], NULL);
+  // }
+  pthread_join(pthread_printer, NULL); 
+  analyzer_done = 1;
+  //pthread_cancel(pthread_analyzer);  //hang on mtx in rb_ra
+  pthread_join(pthread_analyzer, NULL);
+  reader_done = 1;
+  pthread_join(pthread_reader, NULL); 
+  logger_done = 1;
+  pthread_join(pthread_logger, NULL);
+  watchdog_done = 1;
+  //pthread_cancel(pthread_watchdog);  //hang on mtx in rb_ra
+  pthread_join(pthread_watchdog, NULL);
+
+  write_log("main", "after joining all phreads");
+  //analyzer_release_resources(NULL);
+  //reader_release_resources(NULL);
+  destroy_mutexes();
+  write_log("main", "after destorying mutexes");
   return 0;
 }

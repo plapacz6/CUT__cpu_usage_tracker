@@ -116,7 +116,8 @@ int main(){
   pthread_t pthread_reader;
   pthread_create(&pthread_reader, NULL, reader, NULL);
   sleep(2);
-  pthread_cancel(pthread_reader);
+  reader_done = 1;
+  //pthread_cancel(pthread_reader);
   pthread_join(pthread_reader, NULL);
 
   return ret;

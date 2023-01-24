@@ -5,13 +5,19 @@
 #include <threads.h>
 #include <pthread.h>
 #include <assert.h>
+#include <signal.h>
 
+#include "logger.h"
 #include "printer.h"
 #include "reader.h"  //cpu_N
 #include "analyzer.h"
 #include "watchdog.h"
-//#include "logger.h"
 #include "mutexes.h"
+
+
+extern int printer_debug_on;
+
+volatile sig_atomic_t printer_done = 0;
 
 void bar_create(char* bar, long double val);
 
@@ -20,14 +26,14 @@ void *printer(void* arg){
   size_t msg_size = get_size_msg1core(0, 0);
   size_t cpu_CorN = cpu_cors_N(0, 0);    
   
-  char bar[81];
+  char bar[81] = {};
 
-  while(1){
+  while(!printer_done){
     mtx_lock(&mtx_analyzer_printer);    
     cnd_wait(&cnd_ap, &mtx_analyzer_printer);
     assert(ptr_avr != NULL);
 
-    system("clear");
+    if(!printer_debug_on) system("clear");
     printf("%s\n","printer:");  //DEBUG  ""
     printf("%s\n","average usage cpu:");
 
@@ -54,6 +60,8 @@ void *printer(void* arg){
 
     //sleep(1);
   }//while(1)
+  write_log("printer","%s","pthread finished");
+  pthread_exit(0);
 }
 
 void bar_create(char* bar, long double val){

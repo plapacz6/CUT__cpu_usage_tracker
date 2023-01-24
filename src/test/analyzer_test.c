@@ -8,7 +8,7 @@
 #include "../analyzer.h"
 #include "../mutexes.h"
 
-/**********************   dummy function for SIGTERM hander *******************/
+/***************   dummy function for SIGTERM hander *******************/
 //watchdog
 void checkin_watchdog(cell_in_watchdog_table_T idx){  
 }

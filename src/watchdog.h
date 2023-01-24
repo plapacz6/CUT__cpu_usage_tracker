@@ -1,6 +1,7 @@
 #ifndef WATCHER_H
 #define WATCHER_H
 #include <pthread.h>
+#include <signal.h>
 
 typedef struct watchdog_entry_TT {
   int exists;
@@ -37,6 +38,7 @@ void register_in_watchdog(cell_in_watchdog_table_T idx, pthread_t thrd);
 void checkin_watchdog(cell_in_watchdog_table_T idx);
 
 /**helping functioni for SITGERM handleer*/
+volatile sig_atomic_t watchdog_done;
 void cancel_all_pthreads();
 
 void* watchdog();

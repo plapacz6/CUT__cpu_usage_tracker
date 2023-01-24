@@ -2,12 +2,16 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
+
 #include "logger.h"
 #include "analyzer.h"
 #include "watchdog.h"
 #include "ring_buffer.h"
 #include "reader.h"
 #include "mutexes.h"
+
+volatile sig_atomic_t analyzer_done = 0;
 /**************************************************/
 
 /**
@@ -76,23 +80,30 @@ long double calculate_avr_1cpu(
   return avr * 100;  // %
 }
 
-long double *ptr_avr;
+long double *ptr_avr = NULL;
 
 /**************************************************/
 long double *create_avr_array(size_t cpu_CorN){
-  ptr_avr = calloc(sizeof(long double), cpu_CorN);
+  ptr_avr = NULL;
+  ptr_avr = (long double*)calloc(sizeof(long double), cpu_CorN);
   if(!ptr_avr){
-    fprintf(stderr, "%s\n", "can't create 'average' array");
+    write_log("analyzer", "%s", "can't create 'average' array");    
     exit(1);
   }  
   return ptr_avr;
 }
 void destroy_avr_array(){
-  if(!ptr_avr) free(ptr_avr);
+  if(ptr_avr) free(ptr_avr);
   ptr_avr = NULL;
+}
+void analyzer_release_resources(void* arg){
+  destroy_avr_array();
+  write_log("analyzer","%s","resource released");
 }
 /**************************************************/
 void *analyzer(void* arg){
+  pthread_cleanup_push(analyzer_release_resources, NULL);
+  
 
   size_t size_msg1core = get_size_msg1core(0, 0); /**< size of raw message describing 1 cpu core*/
   size_t cpu_CorN = cpu_cors_N(0, 0);
@@ -108,12 +119,12 @@ void *analyzer(void* arg){
   int pair_ready = 0;  /**< control if there are two set of data for calculate_avr()*/
   int k = 0;
   int m = 1;
-  proc_stat_1cpu10_T cpu_data[2][cpu_CorN]; /**< array of struct with values for 1 core*/
+  proc_stat_1cpu10_T cpu_data[2][cpu_CorN];/**< array of struct with values for 1 core*/
 
-  while(1){  //main loop
-    
+  while(!analyzer_done){  //main loop
+            //write_log("analyzer", "%s","new while loop _____V ");
     msg_all_cors = get_msg_from_rb_ra();  
-    
+            //write_log("analyzer", "%s","after read from rb_ra_____R ");
     //#define DEBUG_PRINT_ON        
     #ifdef DEBUG_PRINT_ON       //DEBUG
     //printf("%s\n", "analyzer:");
@@ -158,13 +169,20 @@ void *analyzer(void* arg){
       } //------------------------------------------------------------------
     }//for  cpu_CorN
 
+    
     mtx_lock(&mtx_watchdog);
     checkin_watchdog(WATCH_ANALYZER);
     mtx_unlock(&mtx_watchdog);
+    
 
     //sleep(1);
     msg_all_cors[0] = '\0';   //raw message used
+        //write_log("analzyer", "%s","end of while loop _____A ");
   }//while(1)
+  write_log("analzyer", "%s", "main loop - done");
+     
+  pthread_exit(0);  
+  pthread_cleanup_pop(1); 
 }
 #undef PAIR_READY
 

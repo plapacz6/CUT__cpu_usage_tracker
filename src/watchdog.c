@@ -8,6 +8,8 @@
 
 #include <errno.h>
 
+volatile sig_atomic_t watchdog_done = 0;
+
 watchdog_entry_T watchdog_table[WATCH_TBL_SIZE];
 
 void register_in_watchdog(cell_in_watchdog_table_T idx, pthread_t thrd){
@@ -22,22 +24,25 @@ void checkin_watchdog(cell_in_watchdog_table_T idx){
 
 void cancel_all_pthreads(){
   int i;
-  for(i = 0; i < 4; i++){   
+  mtx_lock(&mtx_watchdog);
+  for(i = 0; i < WATCH_TBL_SIZE; i++){       
     if(watchdog_table[i].exists) {
       int ret = pthread_cancel(watchdog_table[i].ptr_pthread_id);
+      pthread_join(watchdog_table[i].ptr_pthread_id, NULL);
       if(0 != ret ){                 
-        write_log("watchdog", "can't cancel phread: %lu\n",
+        write_log("cancell_all", "can't cancel phread: %lu\n",
           watchdog_table[i].ptr_pthread_id);
       }    
       watchdog_table[i].exists = 0;          
-      write_log("watchdog", "watchdog: cancellation of phread: %lu", 
+      write_log("cancell_all", "cancellation of phread: %lu", 
         watchdog_table[i].ptr_pthread_id);    
     }
     else{      
-      write_log("watchdog", "cancellation of phread THREAD DON'D EXISTS: %lu", 
+      write_log("cancell_all", "cancel:THREAD DON'D EXISTS: %lu", 
       watchdog_table[i].ptr_pthread_id);          
     }
   }
+  mtx_unlock(&mtx_watchdog);
 }
 
 /**
@@ -46,8 +51,8 @@ void cancel_all_pthreads(){
  * 
  * @return void* 
  */
-void* watchdog(){  
-  while(1){
+void* watchdog(void *arg){  
+  while(!watchdog_done){
     sleep(2);
     if(thrd_success == mtx_trylock(&mtx_watchdog)){
       for(int i = 0; i < 4; i++){      
@@ -62,7 +67,7 @@ void* watchdog(){
               if(0 != ret ){            
                 int errsv = errno;
                 if(errsv == ESRCH) 
-                write_log("watchdog", "%s", "watchdog: cancellation - no such process");
+                write_log("watchdog", "%s", "cancellation - no such process");
               }
 
               watchdog_table[i].exists = 0;
@@ -73,6 +78,8 @@ void* watchdog(){
       mtx_unlock(&mtx_watchdog);
     }//mtx not locked    
   }
+  write_log("watchdog", "%s", "main loop - done");
+  cancel_all_pthreads();
   pthread_exit(0);   
 } 
   

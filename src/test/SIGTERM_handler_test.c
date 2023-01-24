@@ -10,13 +10,13 @@
 #include <assert.h>
 #include "../SIGTERM_handler.h"
 #include "../ring_buffer.h"
+//#include "../mutexes.h"
 
 
 
-//FILE *flog = NULL;
 
 
-volatile sig_atomic_t stop_main_loop = 0;
+
 /**
  * @brief Helping SIGTERM singal generator 
  * 
@@ -28,29 +28,31 @@ void *semiwatchdog(void* sec){
   sleep(**(int**)sec);
   printf("%s\n", "Watchdog sends signal SIGTREM");  
   raise(SIGTERM);  
-  printf("%s\n", "this message shoundn't be visible. SIGTERM not raised.");  
+  sleep(15);
   printf("%s\n","SIGTREM handler TEST: FAIL");
   exit(1);
 }
 
 //logger
+void write_log(char who[static 1], char fmt[static 1], ...){
+}
 void close_log_file(){
   fprintf(stderr, "%s\n", "logger file closed");
 }
 void destroy_logger_buffer(){
   fprintf(stderr, "%s\n", "logger_buffer destroyed");
 }
+void logger_clean_up(void *arg){  
+  fprintf(stderr, "%s\n", "logger: clean up");
+}
+
 
 //reader
-void reader_release_resources(void){
-}
-//analzer
-void destroy_avr_array(){
-  fprintf(stderr, "%s\n", "analyzer avr array destroyed");
-}
-
-void cancel_all_pthreads(){
-}
+volatile sig_atomic_t reader_done = 0;
+volatile sig_atomic_t analyzer_done = 0;
+volatile sig_atomic_t logger_done = 0;
+volatile sig_atomic_t printer_done = 0;
+volatile sig_atomic_t watchdog_done = 0;
 
 /**
  * @brief SIGTERM handler test
@@ -73,15 +75,14 @@ int main(){
   
   FILE *fstat = fopen("/proc/stat", "r");
   printf("%s\n", "main loop start");  
-  while(1){
+  while(!printer_done){
     sleep(1);
     printf("%c", '.');    
-    fflush(stdout);
-    /* here SIGTERM handler should finish this test program with exit code == 0*/
+    fflush(stdout);    
   }  
-  printf("%s\n", "main loop stopped");
-
+  printf("%s\n", "main loop stopped, SIGTERM_handler is working");
+  pthread_cancel(*ptr_watchdog_thread_id); //cancel before phread exit(1)
   pthread_join(*ptr_watchdog_thread_id, NULL);
-  printf("%s\n","SIGTREM handler TEST: FAIL");
-  return 1;
+  printf("%s\n","SIGTREM handler TEST: PASS");
+  return 0;
 }
