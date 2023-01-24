@@ -88,7 +88,7 @@ long double *create_avr_array(size_t cpu_CorN){
   return ptr_avr;
 }
 void destroy_avr_array(){
-  if(!ptr_avr) free(ptr_avr);
+  if(ptr_avr) free(ptr_avr);
   ptr_avr = NULL;
 }
 /**************************************************/
