@@ -24,25 +24,9 @@ void SIGTERM_handler(int signum){
   
   if(signum == SIGTERM || signum == SIGINT){
     
-    cancel_all_pthreads();
-
-    //logger
-    close_log_file();
-    destroy_logger_buffer();
-
-    //reader
-    reader_release_resources();
-
-    //analyzer
-    destroy_avr_array();    
-
-    //printer
+    printer_done = 1;
     
-    //mutexes
-    destroy_mutexes();
-
-    fprintf(stderr, "%s\n", "resources are released");
-    quick_exit(0);
+    fprintf(stderr, "%s\n", "SIGTERM handler: pthreads loops broken");    
   }
 
   sigprocmask(SIG_SETMASK, &old_signal_mask, NULL);

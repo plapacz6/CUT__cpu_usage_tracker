@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <threads.h>
+#include <signal.h>
+#include "logger.h"
 #include "mutexes.h"
 
 
@@ -10,7 +13,7 @@ void destroy_mutexes();
 mtx_t mtx_watchdog;
 mtx_t mtx_logger;
 mtx_t mtx_reader_analyzer;
-mtx_t mtx_analyzer_printer;  
+mtx_t mtx_analyzer_printer; 
 cnd_t cnd_ra;
 cnd_t cnd_ap;
 cnd_t cnd_log;
@@ -43,6 +46,7 @@ void destroy_mutexes(){
   cnd_destroy(&cnd_ra);
   cnd_destroy(&cnd_ap);
   cnd_destroy(&cnd_log);  
+  write_log("mutexes", "%s", "mutexes were destoyed");
 }
 
 #undef NUMBER_OF_MUTEXES

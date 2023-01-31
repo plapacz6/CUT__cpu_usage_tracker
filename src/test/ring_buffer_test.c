@@ -7,6 +7,8 @@
 
 extern size_t number_of_data;
 extern long double *ptr_vla_a; //to VLA
+void write_log(char who[static 1], char fmt[static 1], ...){    
+}
 
 int test_ring_buffer(){
     
@@ -43,7 +45,7 @@ int test_ring_buffer(){
         puts("%================\n");
     }    
 
-    rb_destroy(prb);
+    rb_destroy(&prb);
 
     return 0; //ok
 }

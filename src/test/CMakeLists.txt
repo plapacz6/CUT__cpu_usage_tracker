@@ -73,7 +73,7 @@ foreach(my_target IN LISTS ${my_objects})
   elseif(CMAKE_C_COMPILER EQUAL "LLVM Clang")
       target_compile_options(my_target PRIVATE -std=c11 -Weverything )
   endif()
-  target_compile_definitions(my_target PRIVATE TEST_ON)
+  target_compile_definitions(cut__cpu_usage_tracker PUBLIC __ISOC11_SOURCE)
   target_compile_options(my_target PRIVATE -pthread)  
 endforeach()
 

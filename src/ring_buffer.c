@@ -27,12 +27,13 @@ ring_buffer_T* rb_create(void* void_data,size_t data_type_size, size_t number_of
     }                        
     return prb;
 }
-void rb_destroy(ring_buffer_T* prb){
-    cnd_destroy(&prb->nonempty);
-    cnd_destroy(&prb->nonfull);
-    mtx_destroy(&prb->mtx);
-    if(prb != NULL){
-        free(prb);
+void rb_destroy(ring_buffer_T** pprb){
+    cnd_destroy(&(*pprb)->nonempty);
+    cnd_destroy(&(*pprb)->nonfull);
+    mtx_destroy(&(*pprb)->mtx);
+    if(*pprb){
+        free(*pprb);
+        *pprb = NULL;
     }    
 }
 /**

@@ -2,8 +2,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <stdio.h>  //fileno
+#include <stdio.h> 
 #include <unistd.h>
+#include <signal.h>
 
 #include <pthread.h>
 #include <threads.h>
@@ -13,15 +14,15 @@
 #include "mutexes.h"
 #include "reader.h"
 
-
+volatile sig_atomic_t reader_done = 0;
 /********************  GLOBALS *********************/
 //pointers of static scope
-char* buff_M;
-char *array4entry4allcore;
-FILE *proc_stat_file;
+char* buff_M = NULL;
+char *array4entry4allcore = NULL;
+FILE *proc_stat_file = NULL;
 
-char *rb_ra_data_table;
-ring_buffer_T *rb_ra;
+char *rb_ra_data_table = NULL;
+ring_buffer_T *rb_ra = NULL;
 
 /***************************************************/
 
@@ -39,6 +40,7 @@ size_t cpu_cors_N(size_t n, int get_){
   return cpu_cors_number;
 }
 /***************************************************/
+enum {MSG_SIZE = 128};
 /**
  * get length of one raw entry in /proc/stat desrcibin all cores, but
  * not containing information folowing "intr" string
@@ -107,12 +109,13 @@ size_t determine_buff_M_size(char *fname){
  * @param buff_M_size 
  * @return char*   - pointer to created buffer
  */
-char* create_buff_M(size_t buff_M_size){
-  char* buff = malloc(buff_M_size);
+char* create_buff_M(size_t buff_M_size){  
+  char* buff = (char*)malloc(buff_M_size);
   if(!buff) {
     printf("%s\n", "can't create bufor_M");
     exit(1);
   }
+  memset(buff, 0, buff_M_size);
   return buff;
 }
 /***************************************************/
@@ -123,8 +126,10 @@ char* create_buff_M(size_t buff_M_size){
  * destroyed buffor is pointed by static scope pointer buff_M
  */
 void destroy_buff_M(void){
-  if(buff_M) free(buff_M);
-  buff_M = NULL;
+  if(buff_M) {
+    free(buff_M);
+    buff_M = NULL;
+  }
 }
 
 /***************************************************/
@@ -150,7 +155,7 @@ int fillin_buff_M_tmpfile(char buff_M[], size_t buff_M_size, char *fname){
   size_t readed = fread(buff_M, 1, buff_M_size, fin );
   if(readed < buff_M_size - 1){
     write_log("reader", "%s", "probably error during reading temporary file");
-    write_log("reader", "reded [%lu] elements", readed);
+    write_log("reader", "reded [%lu] elements", readed);        
   }
   buff_M[buff_M_size - 1] = '\0';
   fclose(fin);
@@ -166,7 +171,7 @@ int fillin_buff_M_tmpfile(char buff_M[], size_t buff_M_size, char *fname){
  * @param buf_size - size of buffer
  * @return size_t  - number of cpu cors
  */
-size_t calc_cpuN(char *buff_M, size_t buf_size){
+size_t calc_cpuN(char *buff_M, size_t buf_size){  
   char *begin1 = buff_M;
   begin1[buf_size - 1] = '\0';
   char *begin2 = NULL;
@@ -175,7 +180,7 @@ size_t calc_cpuN(char *buff_M, size_t buf_size){
     cpuN++;
     begin1 = begin2 + 1;
   }
-              printf("cpu cores number: %lu\n", cpuN);
+              write_log("reader:calc_cpuN", "cpu cores number: %lu\n", cpuN);
   return cpuN;
 }
 
@@ -253,7 +258,7 @@ void read_One_set(char buff_M[], size_t buff_M_size, char* msg_array, size_t cpu
  * @return char* 
  */
 char* create_array_4_all_core(size_t cpu_CorN, size_t size_msg1core){
-  char *msg_a = malloc(cpu_CorN * size_msg1core);
+  char *msg_a = (char*)malloc(cpu_CorN * size_msg1core);
   if(!msg_a){
     write_log("reader", "%s", "can't create message array");
     exit(1);
@@ -266,8 +271,10 @@ char* create_array_4_all_core(size_t cpu_CorN, size_t size_msg1core){
  * 
  */
 void destroy_array_4_all_core(void) {
-  if(array4entry4allcore) free(array4entry4allcore);
-  array4entry4allcore = NULL;  
+  if(array4entry4allcore) {
+    free(array4entry4allcore);
+    array4entry4allcore = NULL;  
+  }
 }
 
 /***************************************************/
@@ -280,9 +287,10 @@ void destroy_array_4_all_core(void) {
  * 
  */
 void create_rb_ra(void){  
-  char *rb_ra_data_table = malloc(10 * get_size_msg1core(0,0) * cpu_cors_N(0,0));
+  rb_ra_data_table = NULL;
+  char *rb_ra_data_table = (char*)malloc(10 * get_size_msg1core(0,0) * cpu_cors_N(0,0));
   if(!rb_ra_data_table){
-    write_log("reader", "%s", "can't create rb_ra_data_table");
+    write_log("reader", "%s", "can't create rb_ra_data_table");    
     exit(1);
   }     
   rb_ra = rb_create(rb_ra_data_table, get_size_msg1core(0,0) * cpu_cors_N(0,0), 10);  
@@ -294,12 +302,21 @@ void create_rb_ra(void){
  * 
  */
 void destroy_rb_ra(void){    
-  if(rb_ra_data_table) free(rb_ra_data_table);  
-    rb_ra_data_table = NULL;
-  if(rb_ra) rb_destroy(rb_ra);
-    rb_ra = NULL;
+  if(rb_ra) {
+    rb_destroy(&rb_ra);
+    //rb_ra = NULL;  //in rb_destroy
+  }
+  if(rb_ra_data_table) {
+    free(rb_ra_data_table);  
+    rb_ra_data_table = NULL;    
+  }
 }
-
+// void destroy_rb_ra_data_table(void){
+//   if(rb_ra_data_table) {
+//     free(rb_ra_data_table);  
+//     rb_ra_data_table = NULL;    
+//   }
+// }
 /* ----------------------------------------------- */
 
 /**
@@ -314,7 +331,8 @@ int add_msg_to_rb_ra(char *msg_all_cpu, size_t msg_all_cpu_size){
       //1.get a hook
     char *ptr_cell = (char*) rb_get_back_hook(rb_ra);    
       //2.copy 
-    memcpy(ptr_cell, msg_all_cpu, msg_all_cpu_size);      
+    memcpy(ptr_cell, msg_all_cpu, msg_all_cpu_size - 1);      
+    ptr_cell[msg_all_cpu_size - 1] = '\0';
   return 0;
 }
 /**
@@ -359,16 +377,21 @@ void close_proc_stat_file(void){
  * releases resources aquired by reader pthread
  * 
  */
-void reader_release_resources(void){
+void reader_release_resources(void* arg){
+  destroy_rb_ra();  
+  //destroy_rb_ra_data_table(); 
+
   destroy_array_4_all_core();
   destroy_buff_M();    
   close_proc_stat_file();
 
-  destroy_rb_ra();    
+  write_log("reader", "%s", "resource resleased");
 }
 /***************************************************/
 
 void* reader(void *arg){
+  pthread_cleanup_push(reader_release_resources, NULL);
+  
   size_t buff_M_size = 0;
   size_t cpu_CorN = 0;
   
@@ -409,11 +432,9 @@ void* reader(void *arg){
    *    (table not containig informacji not concerning cpu cors)
    * 2. create ring buffer and his data table
    */
-    //1.
-  #define MSG_SIZE (128)
+    //1.  
   size_t size_msg1core = MSG_SIZE;
   get_size_msg1core(MSG_SIZE, 1);
-  #undef MSG_SIZE
     //2.
   array4entry4allcore = create_array_4_all_core(cpu_CorN, size_msg1core);
     //3.
@@ -431,7 +452,7 @@ void* reader(void *arg){
    * 7. sleep one second
    */
     
-  while(1){
+  while(!reader_done){
       //1.      
     open_proc_stat_file();  
       //2.
@@ -450,9 +471,8 @@ void* reader(void *arg){
     sleep(1);
     
   }//while
-  
-  //SIGTERM handler:
-  // reader_release_resources();
-  // pthread_exit(0);
+  write_log("reader", "%s", "main loop done");
+  pthread_exit(0);
+  pthread_cleanup_pop(1);    
 }
 /***************************************************/
