@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
 
 #include "logger.h"
 #include "analyzer.h"
@@ -85,7 +86,9 @@ long double *ptr_avr = NULL;
 /**************************************************/
 long double *create_avr_array(size_t cpu_CorN){
   ptr_avr = NULL;
-  ptr_avr = (long double*)calloc(sizeof(long double), cpu_CorN);
+  //ptr_avr = (long double*)calloc(sizeof(long double), cpu_CorN);
+  ptr_avr = (long double*)malloc(sizeof(long double) * cpu_CorN);
+  memset(ptr_avr, 0, cpu_CorN);
   if(!ptr_avr){
     write_log("analyzer", "%s", "can't create 'average' array");    
     exit(1);
@@ -93,8 +96,10 @@ long double *create_avr_array(size_t cpu_CorN){
   return ptr_avr;
 }
 void destroy_avr_array(){
-  if(ptr_avr) free(ptr_avr);
-  ptr_avr = NULL;
+  if(ptr_avr) {
+    free(ptr_avr);
+    ptr_avr = NULL;
+  }
 }
 void analyzer_release_resources(void* arg){
   destroy_avr_array();

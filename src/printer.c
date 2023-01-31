@@ -19,6 +19,7 @@ extern int printer_debug_on;
 
 volatile sig_atomic_t printer_done = 0;
 
+enum {BAR_SIZE = 81};
 void bar_create(char* bar, long double val);
 
 void *printer(void* arg){
@@ -26,7 +27,7 @@ void *printer(void* arg){
   size_t msg_size = get_size_msg1core(0, 0);
   size_t cpu_CorN = cpu_cors_N(0, 0);    
   
-  char bar[81] = {};
+  char bar[BAR_SIZE] = {};
 
   while(!printer_done){
     mtx_lock(&mtx_analyzer_printer);    
@@ -67,7 +68,9 @@ void *printer(void* arg){
 void bar_create(char* bar, long double val){
   int full_len = 54-8; //46
   int val_len = (full_len * val)/100;
+  assert(val_len < BAR_SIZE);
   int i;
+  //memset(bar, 0, BAR_SIZE);  
   for(i = 0; i < val_len; i++){
     bar[i] = '!'; //'='; //'|'; //'*'; //'I'; //'X';
   }

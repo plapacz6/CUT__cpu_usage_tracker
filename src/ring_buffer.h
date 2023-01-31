@@ -62,7 +62,14 @@ typedef struct ring_buffer_TT {
  * @return ring_buffer_T* - pointer to newly created ring_buffer_T
  */
 ring_buffer_T* rb_create(void* data_,size_t data_type_size, size_t number_of_data);
-void rb_destroy(ring_buffer_T* prb);
+
+
+/**
+ * @brief destroy ring buffer created by rb_crete
+ * 
+ * @param pprb pointer to pointer to buffer - it will be NULLed
+ */
+void rb_destroy(ring_buffer_T** pprb);
 
 void* rb_get_back_hook(ring_buffer_T *prb);
 void* rb_get_front_hook(ring_buffer_T *prb);

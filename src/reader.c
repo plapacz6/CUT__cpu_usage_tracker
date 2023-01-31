@@ -40,6 +40,7 @@ size_t cpu_cors_N(size_t n, int get_){
   return cpu_cors_number;
 }
 /***************************************************/
+enum {MSG_SIZE = 128};
 /**
  * get length of one raw entry in /proc/stat desrcibin all cores, but
  * not containing information folowing "intr" string
@@ -125,8 +126,10 @@ char* create_buff_M(size_t buff_M_size){
  * destroyed buffor is pointed by static scope pointer buff_M
  */
 void destroy_buff_M(void){
-  if(buff_M) free(buff_M);
-  buff_M = NULL;
+  if(buff_M) {
+    free(buff_M);
+    buff_M = NULL;
+  }
 }
 
 /***************************************************/
@@ -268,8 +271,10 @@ char* create_array_4_all_core(size_t cpu_CorN, size_t size_msg1core){
  * 
  */
 void destroy_array_4_all_core(void) {
-  if(array4entry4allcore) free(array4entry4allcore);
-  array4entry4allcore = NULL;  
+  if(array4entry4allcore) {
+    free(array4entry4allcore);
+    array4entry4allcore = NULL;  
+  }
 }
 
 /***************************************************/
@@ -285,9 +290,8 @@ void create_rb_ra(void){
   rb_ra_data_table = NULL;
   char *rb_ra_data_table = (char*)malloc(10 * get_size_msg1core(0,0) * cpu_cors_N(0,0));
   if(!rb_ra_data_table){
-    write_log("reader", "%s", "can't create rb_ra_data_table");
-    raise(SIGTERM);
-    //exit(1);
+    write_log("reader", "%s", "can't create rb_ra_data_table");    
+    exit(1);
   }     
   rb_ra = rb_create(rb_ra_data_table, get_size_msg1core(0,0) * cpu_cors_N(0,0), 10);  
 }
@@ -298,14 +302,20 @@ void create_rb_ra(void){
  * 
  */
 void destroy_rb_ra(void){    
-  if(rb_ra) rb_destroy(rb_ra);
-    rb_ra = NULL;
-  if(rb_ra_data_table) free(rb_ra_data_table);  
+  if(rb_ra) {
+    rb_destroy(&rb_ra);
+    //rb_ra = NULL;  //in rb_destroy
+  }
+  if(rb_ra_data_table) {
+    free(rb_ra_data_table);  
     rb_ra_data_table = NULL;    
+  }
 }
 // void destroy_rb_ra_data_table(void){
-//     if(rb_ra_data_table) free(rb_ra_data_table);  
+//   if(rb_ra_data_table) {
+//     free(rb_ra_data_table);  
 //     rb_ra_data_table = NULL;    
+//   }
 // }
 /* ----------------------------------------------- */
 
@@ -321,7 +331,8 @@ int add_msg_to_rb_ra(char *msg_all_cpu, size_t msg_all_cpu_size){
       //1.get a hook
     char *ptr_cell = (char*) rb_get_back_hook(rb_ra);    
       //2.copy 
-    memcpy(ptr_cell, msg_all_cpu, msg_all_cpu_size);      
+    memcpy(ptr_cell, msg_all_cpu, msg_all_cpu_size - 1);      
+    ptr_cell[msg_all_cpu_size - 1] = '\0';
   return 0;
 }
 /**
@@ -421,11 +432,9 @@ void* reader(void *arg){
    *    (table not containig informacji not concerning cpu cors)
    * 2. create ring buffer and his data table
    */
-    //1.
-  #define MSG_SIZE (128)
+    //1.  
   size_t size_msg1core = MSG_SIZE;
   get_size_msg1core(MSG_SIZE, 1);
-  #undef MSG_SIZE
     //2.
   array4entry4allcore = create_array_4_all_core(cpu_CorN, size_msg1core);
     //3.

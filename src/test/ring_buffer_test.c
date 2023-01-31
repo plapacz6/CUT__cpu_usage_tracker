@@ -45,7 +45,7 @@ int test_ring_buffer(){
         puts("%================\n");
     }    
 
-    rb_destroy(prb);
+    rb_destroy(&prb);
 
     return 0; //ok
 }

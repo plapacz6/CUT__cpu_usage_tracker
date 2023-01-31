@@ -74,8 +74,8 @@ ring_buffer_T *create_logger_buffer(){
 /* ------------------------------------------------*/
 
 void destroy_logger_buffer(){  
-    rb_destroy(ptr_logger_buffer);
-    ptr_logger_buffer = NULL;
+    rb_destroy(&ptr_logger_buffer);
+    //ptr_logger_buffer = NULL;  //in rb_destroy
     logger_buffer_exists = 0;  
 }
 /********************************************************/
