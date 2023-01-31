@@ -114,6 +114,7 @@ char* create_buff_M(size_t buff_M_size){
     printf("%s\n", "can't create bufor_M");
     exit(1);
   }
+  memset(buff, 0, buff_M_size);
   return buff;
 }
 /***************************************************/

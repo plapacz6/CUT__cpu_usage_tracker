@@ -24,22 +24,7 @@ void SIGTERM_handler(int signum){
   
   if(signum == SIGTERM || signum == SIGINT){
     
-    //cancel_all_pthreads();
-
-    //printer
     printer_done = 1;
-
-    // //analyzer
-    //analyzer_done = 1;
-    
-    //logger
-    //logger_done = 1;    
-    
-    //reader    
-    //reader_done = 1;
-    //cancel_all_pthreads();
-    //watchdog
-    //watchdog_done = 1;
     
     fprintf(stderr, "%s\n", "SIGTERM handler: pthreads loops broken");    
   }
