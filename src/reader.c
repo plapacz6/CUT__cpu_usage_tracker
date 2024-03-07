@@ -292,13 +292,14 @@ void destroy_array_4_all_core(void) {
  *
  */
 void create_rb_ra(void) {
+    const size_t ring_buffer_capacity = 10;
     rb_ra_data_table = NULL;
-    char *rb_ra_data_table = (char*)malloc(10 * get_size_msg1core(0,0) * cpu_cors_N(0,0));
+    rb_ra_data_table = (char*)malloc(ring_buffer_capacity * get_size_msg1core(0,0) * cpu_cors_N(0,0));
     if(!rb_ra_data_table) {
         write_log("reader", "%s", "can't create rb_ra_data_table");
         exit(1);
     }
-    rb_ra = rb_create(rb_ra_data_table, get_size_msg1core(0,0) * cpu_cors_N(0,0), 10);
+    rb_ra = rb_create(rb_ra_data_table, get_size_msg1core(0,0) * cpu_cors_N(0,0), ring_buffer_capacity);
 }
 
 /**
