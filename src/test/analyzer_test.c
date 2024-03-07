@@ -5,12 +5,13 @@
 #include "../reader.h"
 #include "../ring_buffer.h"
 #include "../SIGTERM_handler.h"
+#include "../printer.h"
 #include "../analyzer.h"
 #include "../mutexes.h"
 
 /***************   dummy function for SIGTERM hander *******************/
 //watchdog
-void checkin_watchdog(cell_in_watchdog_table_T idx){  
+void checkin_watchdog(cell_in_watchdog_table_T /*idx*/){  
 }
 void cancel_all_pthreads(){
 }
@@ -72,5 +73,5 @@ int main(){
   ret = test_cacluate_avr_1cpu();
 
   destroy_mutexes();
-  return 0;
+  return ret;
 }

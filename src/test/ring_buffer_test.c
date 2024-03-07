@@ -7,7 +7,7 @@
 
 extern size_t number_of_data;
 extern long double *ptr_vla_a; //to VLA
-void write_log(char who[static 1], char fmt[static 1], ...){    
+void write_log(char /* who[static 1] */, char /* fmt[static 1] */, ...){    
 }
 
 int test_ring_buffer(){
@@ -17,11 +17,12 @@ int test_ring_buffer(){
     int el;
     int el_test = 100;
     int *ptr_el = NULL;
-
-    for(int i = 0; i < number_of_data /*+ 2*/; i++){
+    size_t i;
+    for(i = 0; i < number_of_data /*+ 2*/; i++){
 
         puts("--- push_back  ---");                    
-        for(int j = 0, el = el_test; j < i; j++, el++){
+        size_t j;
+        for(j = 0, el = el_test; j < i; j++, el++){
                                         
             ptr_el = (int*)rb_get_back_hook(prb);  
             assert(ptr_el != NULL);                            
@@ -29,16 +30,16 @@ int test_ring_buffer(){
         }   
                             
         puts("--- pop_front  ---");
-        for(int j = 0, el = el_test; j < i; j++, el++){            
+        for(j = 0, el = el_test; j < i; j++, el++){            
                             
             ptr_el = (int*)rb_get_front_hook(prb);
             assert(ptr_el != NULL); 
             if(j <= number_of_data){
-                printf("| i: %d, j: %d ", i, j);
+                printf("| i: %zu, j: %zu ", i, j);
                 assert(el == *ptr_el);
             }
             else{
-                printf("| i: %d, j: %d ", i, j);
+                printf("| i: %zu, j: %zu ", i, j);
                 assert(el != *ptr_el);
             }
         }        

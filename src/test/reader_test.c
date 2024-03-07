@@ -18,7 +18,7 @@
 
 /************* dummy function for test environemnt *******************/
 typedef int cell_in_watchdog_table_T;
-void checkin_watchdog(cell_in_watchdog_table_T idx){  
+void checkin_watchdog(cell_in_watchdog_table_T /*idx*/){  
 }
 // void write_log(char *who, char *msg, char* arg){
 //   fprintf(stderr, "%s %s %s\n", who, msg, arg);

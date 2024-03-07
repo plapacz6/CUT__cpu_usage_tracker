@@ -236,7 +236,7 @@ void read_One_set(const char buff_M[], size_t /*buff_M_size*/, char* msg_array, 
         // printf("\n%%%%%%%%%%%%%%%%\n: ", "");
 
 
-        char* msg = (char*) msg_array;    
+        char* msg = (char*) msg_array;
         strncpy(
             (msg + (core * size_msg1core)),
             begin2,

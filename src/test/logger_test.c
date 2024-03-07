@@ -13,11 +13,11 @@
 
 
 
-FILE *flog;
-int logger_buffer_exists;
+extern FILE *flog;
+extern int logger_buffer_exists;
 typedef int cell_in_watchdog_table_T;
-ring_buffer_T *ptr_logger_buffer;
-void checkin_watchdog(cell_in_watchdog_table_T idx){  
+extern ring_buffer_T *ptr_logger_buffer;
+void checkin_watchdog(cell_in_watchdog_table_T /* idx */){  
 
 }
 

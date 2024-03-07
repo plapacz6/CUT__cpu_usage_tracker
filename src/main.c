@@ -24,7 +24,7 @@ void release_resouces(void) {
     write_log("main:clean","release resources");
 }
 
-int printer_debug_on = 0;
+extern int printer_debug_on;
 
 int main(int argc, char** argv) {
     srand(time(NULL));

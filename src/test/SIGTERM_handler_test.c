@@ -8,14 +8,16 @@
 #include <errno.h>
 #include <pthread.h>
 #include <assert.h>
+
 #include "../SIGTERM_handler.h"
 #include "../ring_buffer.h"
-//#include "../mutexes.h"
+#include "../mutexes.h"
 
-
-
-
-
+#include "../logger.h"
+#include "../reader.h"
+#include "../analyzer.h"
+#include "../printer.h"
+#include "../watchdog.h"
 
 /**
  * @brief Helping SIGTERM singal generator 
@@ -32,27 +34,6 @@ void *semiwatchdog(void* sec){
   printf("%s\n","SIGTREM handler TEST: FAIL");
   exit(1);
 }
-
-//logger
-void write_log(char who[static 1], char fmt[static 1], ...){
-}
-void close_log_file(){
-  fprintf(stderr, "%s\n", "logger file closed");
-}
-void destroy_logger_buffer(){
-  fprintf(stderr, "%s\n", "logger_buffer destroyed");
-}
-void logger_clean_up(void *arg){  
-  fprintf(stderr, "%s\n", "logger: clean up");
-}
-
-
-//reader
-volatile sig_atomic_t reader_done = 0;
-volatile sig_atomic_t analyzer_done = 0;
-volatile sig_atomic_t logger_done = 0;
-volatile sig_atomic_t printer_done = 0;
-volatile sig_atomic_t watchdog_done = 0;
 
 /**
  * @brief SIGTERM handler test
@@ -73,7 +54,7 @@ int main(){
 
   install_SIGTERM_handler();
   
-  FILE *fstat = fopen("/proc/stat", "r");
+  // FILE *fstat = fopen("/proc/stat", "r");
   printf("%s\n", "main loop start");  
   while(!printer_done){
     sleep(1);
@@ -86,3 +67,35 @@ int main(){
   printf("%s\n","SIGTREM handler TEST: PASS");
   return 0;
 }
+
+/*************  stub functions ****************************/
+
+//logger
+void write_log(char who[static 1], char fmt[static 1], ...){
+  char tmp1 = *who;
+  char tmp2 = *fmt;
+  tmp2 = tmp1;
+  tmp1 = tmp2;  
+}
+
+void* logger(void *){return NULL;}
+
+void reader_release_resources(void* ){}
+size_t cpu_cors_N(size_t , int) {return 0;}
+size_t get_size_msg1core(size_t , int) {return 0;}
+char* get_msg_from_rb_ra(void) {return NULL;}
+void* reader(void *) {return NULL;}
+
+//extern 
+long double *ptr_avr = NULL;
+void analyzer_release_resources(void*) {}
+void *analyzer(void* ){return NULL;}
+
+void *printer(void*){return NULL;}
+
+// extern 
+watchdog_entry_T watchdog_table[4]; 
+void register_in_watchdog(cell_in_watchdog_table_T , pthread_t ){}
+void checkin_watchdog(cell_in_watchdog_table_T ){}
+void cancel_all_pthreads(){}
+void* watchdog(){return NULL;}

@@ -9,7 +9,7 @@
 #include "../watchdog.h"
 
 /* ---------------------------------------------- */
-mtx_t mtx_watchdog;
+extern mtx_t mtx_watchdog;
 /* ---------------------------------------------- */
 
 /******    dummy  SIGTERM hander *******************/
@@ -49,11 +49,11 @@ void install_SIGTERM_handler(){
 
 
 /* ---------------------------------------------- */
-void test_worker_cleanup(void* a){
+void test_worker_cleanup(void* /*a*/){
   fprintf(stderr, "%s\n", "watchdog test PASS"); fflush(stderr); //!!! w/o  \n
 }
 /* ---------------------------------------------- */
-void *test_worker1(void* arg){
+void *test_worker1(void* /*arg*/){
   pthread_cleanup_push(test_worker_cleanup, NULL);
 
   for(int i = 0; i < 4; i++){
@@ -68,7 +68,7 @@ void *test_worker1(void* arg){
   pthread_exit(NULL);
 }
 /* ---------------------------------------------- */
-void *test_worker2(void* arg){  
+void *test_worker2(void* /*arg*/){  
   for(int i = 0;; i++){
     mtx_lock(&mtx_watchdog);
     checkin_watchdog(WATCH_ANALYZER);
@@ -85,7 +85,7 @@ void *test_worker2(void* arg){
   pthread_exit(NULL);
 }
 /* ---------------------------------------------- */
-void *test_worker3(void* arg){
+void *test_worker3(void* /*arg*/){
   int i = 0;
   while(1){        
     mtx_lock(&mtx_watchdog);
@@ -99,7 +99,7 @@ void *test_worker3(void* arg){
   pthread_exit(NULL);
 }
 /* ---------------------------------------------- */
-void *test_worker4(void* arg){
+void *test_worker4(void* /*arg*/){
   int i = 0;
   while(1){    
     mtx_lock(&mtx_watchdog);
@@ -169,12 +169,12 @@ int main(){
 
           /*****/
   mtx_unlock(&mtx_watchdog);
-  pthread_t cup_phreads[4] = {
-    test_worker_id_1, 
-    test_worker_id_2,
-    test_worker_id_3,
-    test_worker_id_4,      
-  };
+  // pthread_t cup_phreads[4] = {
+  //   test_worker_id_1, 
+  //   test_worker_id_2,
+  //   test_worker_id_3,
+  //   test_worker_id_4,      
+  // };
   sleep(15);
   //raise(SIGTERM);
   pthread_cancel(watchdog_id);
