@@ -15,7 +15,7 @@
 #include "mutexes.h"
 
 
-extern int printer_debug_on;
+int printer_debug_on = 0;
 
 volatile sig_atomic_t printer_done = 0;
 
