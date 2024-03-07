@@ -45,7 +45,7 @@ typedef struct proc_stat_1cpu10_T{
 extern long double *ptr_avr;
 
 //for SIGTERM_handler
-volatile sig_atomic_t analyzer_done;
+extern volatile sig_atomic_t analyzer_done;
 //for main.c
 void analyzer_release_resources(void* arg);
 

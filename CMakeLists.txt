@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.19)
 project(CUT__cpu_usage_tracker LANGUAGES C)
 
 enable_testing()

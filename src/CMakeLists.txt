@@ -1,48 +1,26 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.19)
 project(CUT__cpu_usage_tracker LANGUAGES C)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 find_library(NAME pthread)
 
-
-add_executable(cut__cpu_usage_tracker 
-  main.c
-)
-set_property(TARGET cut__cpu_usage_tracker PROPERTY C_STANDARD 11)
-
-if(CMAKE_C_COMPILER  EQUAL "GNU Compiler Collection")
-    target_compile_options(cut__cpu_usage_tracker PRIVATE -std=c11 -Wall -Wextra )
-endif()  
-if(CMAKE_C_COMPILER EQUAL "LLVM Clang")
-    target_compile_options(cut__cpu_usage_tracker PRIVATE -std=c11 -Weverything )
+set(CMAKE_C_COMPILER ${CC})
+if(CMAKE_C_COMPILER_ID  EQUAL "GNU Compiler Collection")
+    set(compile_options -Wall -Wextra)      
+    message("compile options for GNU: ${compile_options}")
+elseif(CMAKE_C_COMPILER_ID EQUAL "LLVM Clang")
+    set(compile_options -Weverything)   
+    message("compile options for LLVM: ${compile_options}") 
+else()
+    set(compile_options -Wall -W)    
+    message("compile options for Other: ${compile_options}")
 endif()
-target_compile_definitions(cut__cpu_usage_tracker PUBLIC __ISOC11_SOURCE)
-target_compile_options(cut__cpu_usage_tracker PRIVATE -pthread)
-target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:SIGTERM_handler>)
-target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:ring_buffer>)
-target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:reader>)
-target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:analyzer>)
-target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:printer>)
-target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:logger>)
-target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:watchdog>)
-target_link_libraries(cut__cpu_usage_tracker PRIVATE $<TARGET_OBJECTS:mutexes>)
-target_link_libraries(cut__cpu_usage_tracker PRIVATE pthread)
+set(compile_options ${compile_options} -pthread)
+message("compile options: ${compile_options}")
 
-
-#if(BUILD_TESTING)
-add_subdirectory(test)
-#endif()
-
-add_library( SIGTERM_handler OBJECT ./SIGTERM_handler.c)
-add_library( ring_buffer OBJECT ./ring_buffer.c)
-add_library( logger OBJECT ./logger.c)
-add_library( watchdog OBJECT ./watchdog.c)
-add_library( reader OBJECT ./reader.c)
-add_library( analyzer OBJECT ./analyzer.c)
-add_library( printer OBJECT ./printer.c)
-add_library( mutexes OBJECT ./mutexes.c)
-
-list(APPEND my_objects 
-    SIGTERM_handler
+list(APPEND my_objects     
     ring_buffer
     logger
     watchdog
@@ -50,14 +28,34 @@ list(APPEND my_objects
     analyzer 
     printer   
     mutexes
+    SIGTERM_handler
 )
-foreach(my_object IN LISTS ${my_objects} )    
-    set_property(TARGET ${my_object} PROPERTY C_STANDARD 11)
-    if(CMAKE_C_COMPILER  EQUAL "GNU Compiler Collection")
-        target_compile_options(${my_object} PUBLIC -std=c11 -Wall -Wextra )
-    elseif(CMAKE_C_COMPILER EQUAL "LLVM Clang")
-        target_compile_options(${my_object} PUBLIC -std=c11 -Weverything )
-    endif()
-    target_compile_definitions(${my_object} PUBLIC __ISOC11_SOURCE)
-    target_compile_options(${my_object} PUBLIC -pthread)
+
+foreach(my_object IN LISTS my_objects)    
+    message("creating target: object: ${my_object}")
+    add_library("${my_object}" OBJECT "./${my_object}.c")
+ 
+    message("configuring target: object: ${my_object}")
+    target_include_directories("${my_object}" PUBLIC "./")
+    target_compile_options("${my_object}" PUBLIC ${compile_options})
+    target_link_libraries("${my_object}" PUBLIC pthread)
 endforeach()
+
+
+add_executable(cut__cpu_usage_tracker 
+  ./main.c
+)
+target_include_directories(cut__cpu_usage_tracker PRIVATE "./")
+target_compile_options(cut__cpu_usage_tracker PRIVATE ${compile_options})
+foreach(my_object IN LISTS my_objects)   
+    list(APPEND obj_lists
+        $<TARGET_OBJECTS:${my_object}>
+    )    
+endforeach()
+message("object list for linking: ${obj_lists}")
+target_link_libraries(cut__cpu_usage_tracker PRIVATE ${obj_lists})    
+target_link_libraries(cut__cpu_usage_tracker PRIVATE pthread)
+
+
+# add_subdirectory(test)
+
